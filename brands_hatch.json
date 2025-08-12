@@ -1,0 +1,177 @@
+{
+    "id": "brands_hatch",
+    "name": "Brands Hatch GP",
+    "segments": [
+        {
+            "name": "Старт/Финиш прямая",
+            "type": "straight",
+            "length": 490,
+            "entry_complexity": 1.2,
+            "exit_complexity": 3.5,
+            "accel_coef": 0.95,
+            "brake_coef": 0.05
+        },
+        {
+            "name": "Paddock Hill Bend",
+            "type": "corner",
+            "length": 95,
+            "entry_complexity": 8.7,
+            "exit_complexity": 6.3,
+            "accel_coef": 0.15,
+            "brake_coef": 0.85
+        },
+        {
+            "name": "Прямая к Druids",
+            "type": "straight",
+            "length": 300,
+            "entry_complexity": 4.5,
+            "exit_complexity": 7.8,
+            "accel_coef": 0.90,
+            "brake_coef": 0.10
+        },
+        {
+            "name": "Druids Hairpin",
+            "type": "corner",
+            "length": 60,
+            "entry_complexity": 9.2,
+            "exit_complexity": 5.4,
+            "accel_coef": 0.10,
+            "brake_coef": 0.90
+        },
+        {
+            "name": "Прямая к Graham Hill",
+            "type": "straight",
+            "length": 230,
+            "entry_complexity": 3.8,
+            "exit_complexity": 6.0,
+            "accel_coef": 0.88,
+            "brake_coef": 0.12
+        },
+        {
+            "name": "Graham Hill Bend",
+            "type": "corner",
+            "length": 70,
+            "entry_complexity": 7.5,
+            "exit_complexity": 5.8,
+            "accel_coef": 0.20,
+            "brake_coef": 0.80
+        },
+        {
+            "name": "Прямая к Surtees",
+            "type": "straight",
+            "length": 330,
+            "entry_complexity": 2.5,
+            "exit_complexity": 8.2,
+            "accel_coef": 0.92,
+            "brake_coef": 0.08
+        },
+        {
+            "name": "Surtees",
+            "type": "corner",
+            "length": 90,
+            "entry_complexity": 8.0,
+            "exit_complexity": 6.5,
+            "accel_coef": 0.18,
+            "brake_coef": 0.82
+        },
+        {
+            "name": "Прямая к Hawthorn",
+            "type": "straight",
+            "length": 200,
+            "entry_complexity": 4.0,
+            "exit_complexity": 7.0,
+            "accel_coef": 0.85,
+            "brake_coef": 0.15
+        },
+        {
+            "name": "Hawthorn Bend",
+            "type": "corner",
+            "length": 50,
+            "entry_complexity": 7.8,
+            "exit_complexity": 6.0,
+            "accel_coef": 0.25,
+            "brake_coef": 0.75
+        },
+        {
+            "name": "Прямая к Westfield",
+            "type": "straight",
+            "length": 170,
+            "entry_complexity": 3.5,
+            "exit_complexity": 8.5,
+            "accel_coef": 0.80,
+            "brake_coef": 0.20
+        },
+        {
+            "name": "Westfield",
+            "type": "corner",
+            "length": 70,
+            "entry_complexity": 8.5,
+            "exit_complexity": 5.5,
+            "accel_coef": 0.22,
+            "brake_coef": 0.78
+        },
+        {
+            "name": "Прямая к Sheene Curve",
+            "type": "straight",
+            "length": 520,
+            "entry_complexity": 2.0,
+            "exit_complexity": 7.5,
+            "accel_coef": 0.95,
+            "brake_coef": 0.05
+        },
+        {
+            "name": "Sheene Curve",
+            "type": "corner",
+            "length": 100,
+            "entry_complexity": 7.0,
+            "exit_complexity": 6.8,
+            "accel_coef": 0.30,
+            "brake_coef": 0.70
+        },
+        {
+            "name": "Прямая к Stirlings",
+            "type": "straight",
+            "length": 130,
+            "entry_complexity": 5.5,
+            "exit_complexity": 9.0,
+            "accel_coef": 0.70,
+            "brake_coef": 0.30
+        },
+        {
+            "name": "Stirlings",
+            "type": "corner",
+            "length": 60,
+            "entry_complexity": 9.0,
+            "exit_complexity": 6.0,
+            "accel_coef": 0.12,
+            "brake_coef": 0.88
+        },
+        {
+            "name": "Прямая к Clearways",
+            "type": "straight",
+            "length": 300,
+            "entry_complexity": 3.0,
+            "exit_complexity": 8.0,
+            "accel_coef": 0.85,
+            "brake_coef": 0.15
+        },
+        {
+            "name": "Clearways",
+            "type": "corner",
+            "length": 125,
+            "entry_complexity": 7.5,
+            "exit_complexity": 5.0,
+            "accel_coef": 0.35,
+            "brake_coef": 0.65
+        },
+        {
+            "name": "Финишная прямая",
+            "type": "straight",
+            "length": 450,
+            "entry_complexity": 2.5,
+            "exit_complexity": 4.0,
+            "accel_coef": 0.98,
+            "brake_coef": 0.02
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "daewoo_matiz_2005",
+  "name": "Daewoo Matiz 0.8 (2005)",
+  "power": 38,
+  "mass": 800,
+  "cd": 0.35,
+  "area": 1.9,
+  "tire_grip": 0.9,
+  "price": 2500
+}

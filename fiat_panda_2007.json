@@ -1,0 +1,10 @@
+{
+  "id": "fiat_panda_2007",
+  "name": "Fiat Panda 1.1 (2007)",
+  "power": 40,
+  "mass": 860,
+  "cd": 0.34,
+  "area": 2.0,
+  "tire_grip": 0.91,
+  "price": 3300
+}

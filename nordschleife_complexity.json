@@ -1,0 +1,258 @@
+{
+  "id": "nordschleife_complexity",
+  "name": "Nürburgring Nordschleife (complexity)",
+  "segments": [
+    {
+      "name": "Hohenrain chicane",
+      "type": "corner",
+      "length": 300,
+      "entry_complexity": 7.5,
+      "exit_complexity": 6.0,
+      "accel_coef": 0.6,
+      "brake_coef": 0.8
+    },
+    {
+      "name": "T13 straight",
+      "type": "straight",
+      "length": 500,
+      "entry_complexity": 1.0,
+      "exit_complexity": 1.0,
+      "accel_coef": 0.95,
+      "brake_coef": 0.05
+    },
+    {
+      "name": "Hatzenbach",
+      "type": "corner",
+      "length": 1200,
+      "entry_complexity": 6.0,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.7,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Hocheichen",
+      "type": "corner",
+      "length": 400,
+      "entry_complexity": 5.5,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.7,
+      "brake_coef": 0.5
+    },
+    {
+      "name": "Quiddelbacher-Höhe",
+      "type": "straight",
+      "length": 600,
+      "entry_complexity": 1.5,
+      "exit_complexity": 2.0,
+      "accel_coef": 0.95,
+      "brake_coef": 0.05
+    },
+    {
+      "name": "Flugplatz",
+      "type": "corner",
+      "length": 400,
+      "entry_complexity": 6.5,
+      "exit_complexity": 5.5,
+      "accel_coef": 0.7,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Schwedenkreuz",
+      "type": "straight",
+      "length": 800,
+      "entry_complexity": 1.0,
+      "exit_complexity": 1.0,
+      "accel_coef": 0.97,
+      "brake_coef": 0.03
+    },
+    {
+      "name": "Aremberg",
+      "type": "corner",
+      "length": 400,
+      "entry_complexity": 6.0,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.7,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Fuchsröhre",
+      "type": "straight",
+      "length": 1400,
+      "entry_complexity": 1.0,
+      "exit_complexity": 1.5,
+      "accel_coef": 0.98,
+      "brake_coef": 0.02
+    },
+    {
+      "name": "Adenauer Forst",
+      "type": "corner",
+      "length": 800,
+      "entry_complexity": 7.0,
+      "exit_complexity": 6.0,
+      "accel_coef": 0.65,
+      "brake_coef": 0.7
+    },
+    {
+      "name": "Metzgesfeld",
+      "type": "corner",
+      "length": 500,
+      "entry_complexity": 5.5,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.7,
+      "brake_coef": 0.5
+    },
+    {
+      "name": "Kallenhard",
+      "type": "corner",
+      "length": 700,
+      "entry_complexity": 6.5,
+      "exit_complexity": 5.5,
+      "accel_coef": 0.68,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Wehrseifen",
+      "type": "corner",
+      "length": 400,
+      "entry_complexity": 6.0,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.68,
+      "brake_coef": 0.5
+    },
+    {
+      "name": "Breidscheid/Ex-Mühle",
+      "type": "corner",
+      "length": 800,
+      "entry_complexity": 6.5,
+      "exit_complexity": 5.5,
+      "accel_coef": 0.68,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Lauda Links",
+      "type": "straight",
+      "length": 500,
+      "entry_complexity": 1.0,
+      "exit_complexity": 1.0,
+      "accel_coef": 0.97,
+      "brake_coef": 0.03
+    },
+    {
+      "name": "Bergwerk",
+      "type": "corner",
+      "length": 400,
+      "entry_complexity": 7.5,
+      "exit_complexity": 6.0,
+      "accel_coef": 0.65,
+      "brake_coef": 0.7
+    },
+    {
+      "name": "Kesselchen",
+      "type": "straight",
+      "length": 1800,
+      "entry_complexity": 1.0,
+      "exit_complexity": 1.5,
+      "accel_coef": 0.98,
+      "brake_coef": 0.02
+    },
+    {
+      "name": "Klostertal",
+      "type": "corner",
+      "length": 600,
+      "entry_complexity": 6.0,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.7,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Karussell",
+      "type": "corner",
+      "length": 500,
+      "entry_complexity": 8.5,
+      "exit_complexity": 7.0,
+      "accel_coef": 0.6,
+      "brake_coef": 0.8
+    },
+    {
+      "name": "Hohe Acht",
+      "type": "corner",
+      "length": 500,
+      "entry_complexity": 6.5,
+      "exit_complexity": 5.5,
+      "accel_coef": 0.68,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Eschbach",
+      "type": "corner",
+      "length": 700,
+      "entry_complexity": 6.0,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.7,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Brünnchen",
+      "type": "corner",
+      "length": 700,
+      "entry_complexity": 6.0,
+      "exit_complexity": 5.0,
+      "accel_coef": 0.7,
+      "brake_coef": 0.6
+    },
+    {
+      "name": "Pflanzgarten I",
+      "type": "straight",
+      "length": 500,
+      "entry_complexity": 1.5,
+      "exit_complexity": 2.5,
+      "accel_coef": 0.97,
+      "brake_coef": 0.03
+    },
+    {
+      "name": "Pflanzgarten II/Schwalbenschwanz",
+      "type": "corner",
+      "length": 1000,
+      "entry_complexity": 7.0,
+      "exit_complexity": 6.0,
+      "accel_coef": 0.65,
+      "brake_coef": 0.7
+    },
+    {
+      "name": "Galgenkopf",
+      "type": "corner",
+      "length": 632,
+      "entry_complexity": 7.5,
+      "exit_complexity": 6.5,
+      "accel_coef": 0.65,
+      "brake_coef": 0.7
+    },
+    {
+      "name": "Döttinger Höhe",
+      "type": "straight",
+      "length": 2400,
+      "entry_complexity": 0.5,
+      "exit_complexity": 0.5,
+      "accel_coef": 0.99,
+      "brake_coef": 0.01
+    },
+    {
+      "name": "Antoniusbuche",
+      "type": "straight",
+      "length": 600,
+      "entry_complexity": 0.5,
+      "exit_complexity": 0.5,
+      "accel_coef": 0.99,
+      "brake_coef": 0.01
+    },
+    {
+      "name": "Tiergarten/Hohenrain",
+      "type": "corner",
+      "length": 800,
+      "entry_complexity": 7.0,
+      "exit_complexity": 7.5,
+      "accel_coef": 0.6,
+      "brake_coef": 0.8
+    }
+  ]
+}

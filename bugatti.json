@@ -1,0 +1,9 @@
+{
+    "id": "bugatti",
+    "name": "Bugatti Chiron",
+    "power": 1103,
+    "mass": 1996,
+    "cd": 0.38,
+    "area": 2.6,
+    "tire_grip": 1.3
+}

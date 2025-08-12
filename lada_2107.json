@@ -1,0 +1,10 @@
+{
+  "id": "lada_2107",
+  "name": "Lada 2107 1.5",
+  "power": 53,
+  "mass": 1050,
+  "cd": 0.45,
+  "area": 2.1,
+  "tire_grip": 0.92,
+  "price": 3000
+}

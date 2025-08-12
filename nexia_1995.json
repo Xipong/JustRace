@@ -1,0 +1,9 @@
+{
+    "id": "nexia_1995",
+    "name": "Daewoo Nexia GL",
+    "power": 55,
+    "mass": 1000,
+    "cd": 0.34,
+    "area": 2.1,
+    "tire_grip": 1.0
+}

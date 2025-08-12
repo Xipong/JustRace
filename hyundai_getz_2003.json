@@ -1,0 +1,10 @@
+{
+  "id": "hyundai_getz_2003",
+  "name": "Hyundai Getz 1.1 (2003)",
+  "power": 46,
+  "mass": 980,
+  "cd": 0.36,
+  "area": 2.05,
+  "tire_grip": 0.92,
+  "price": 3400
+}

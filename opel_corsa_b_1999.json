@@ -1,0 +1,10 @@
+{
+  "id": "opel_corsa_b_1999",
+  "name": "Opel Corsa B 1.2 (1999)",
+  "power": 48,
+  "mass": 935,
+  "cd": 0.36,
+  "area": 2.0,
+  "tire_grip": 0.92,
+  "price": 3600
+}

@@ -1,0 +1,10 @@
+{
+  "id": "nissan_micra_k11",
+  "name": "Nissan Micra K11 1.0",
+  "power": 40,
+  "mass": 875,
+  "cd": 0.35,
+  "area": 2.0,
+  "tire_grip": 0.91,
+  "price": 3200
+}
