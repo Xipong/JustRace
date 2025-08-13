@@ -180,6 +180,7 @@ async def lobby_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Ты не в лобби.",
             "Создай: <code>/lobby_create &lt;track_id&gt;</code>",
             "Вступи: <code>/lobby_join &lt;id&gt;</code>",
+
         ]
         kb = lobby_main_kb()
     await send_html(update, "\n".join(lines), reply_markup=kb)
@@ -335,6 +336,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             from bot_lobby import broadcast_lobby_state
             await broadcast_lobby_state(lid, getattr(context, "bot", None))
     elif data.startswith("lobby_leave:"):
+
         lid = data.split(":",1)[1]
         leave_lobby(lid, uid)
         await send_html(update, "Лобби покинуто")
