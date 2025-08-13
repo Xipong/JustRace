@@ -12,7 +12,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _reload_modules():
-    importlib.reload(economy_v1)
+    import economy_v1 as _e
+    importlib.reload(_e)
 
 
 def test_upgrade_menu_has_custom_button():

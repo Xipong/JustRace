@@ -10,6 +10,8 @@ from economy_v1 import (
     payout_for_race,
     reward_player,
     UPGRADE_POWER_BONUS,
+    UPGRADE_WEIGHT_BONUS,
+    UPGRADE_GRIP_BONUS,
     UPGRADE_CLASSES,
     PARTS_PER_CLASS,
     installed_parts,
@@ -101,6 +103,8 @@ def run_player_race(user_id: str, name: str, track_id: Optional[str]=None, laps:
         total_parts = min(installed_parts(progress), max_parts)
         if total_parts:
             car.power *= 1.0 + UPGRADE_POWER_BONUS * total_parts
+            car.mass *= max(0.0, 1.0 - UPGRADE_WEIGHT_BONUS * total_parts)
+            car.tire_grip *= 1.0 + UPGRADE_GRIP_BONUS * total_parts
 
     tid = track_id or p.current_track
     if not tid:
