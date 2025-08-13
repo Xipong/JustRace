@@ -48,6 +48,17 @@ def save_driver(p, d: DriverProfile):
     save_player(p)
 
 
+def _check_daily_limit(p):
+    today = date.today().isoformat()
+    if p.last_race_day != today:
+        p.last_race_day = today
+        p.races_today = 0
+    if p.races_today >= MAX_RACES_PER_DAY:
+        raise RuntimeError(f"Лимит гонок на сегодня исчерпан ({MAX_RACES_PER_DAY}).")
+    p.races_today += 1
+    save_player(p)
+
+
 def get_upgrade_parts() -> Dict[str, str]:
     """Return available upgrade part identifiers and their names."""
     return list_upgrade_parts()
@@ -63,7 +74,6 @@ def get_upgrade_status(user_id: str, name: str, car_id: str) -> str:
     """Report current upgrade progress for the player's car."""
     p = load_player(user_id, name)
     return upgrade_status(p, car_id)
-
 
 def run_player_race(user_id: str, name: str, track_id: Optional[str]=None, laps: int=1,
                     on_event: Optional[Callable[[Dict], None]] = None) -> Dict:

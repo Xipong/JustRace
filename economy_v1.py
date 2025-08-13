@@ -75,6 +75,7 @@ class Player:
     driver_json: Optional[str] = None
     races_today: int = 0
     last_race_day: Optional[str] = None
+    upgrades: Dict[str, UpgradeProgress] = field(default_factory=dict)  # car_id -> progress
 
     def __post_init__(self):
         if self.garage is None:
@@ -95,6 +96,9 @@ def load_player(uid: str, name: str) -> Player:
             data.setdefault("balance", DEFAULT_START_BALANCE)
             data.setdefault("garage", [])
 
+            data.setdefault("races_today", 0)
+            data.setdefault("last_race_day", None)
+
             data.setdefault("upgrades", {})
             upg: Dict[str, UpgradeProgress] = {}
             for cid, val in data["upgrades"].items():
@@ -108,8 +112,8 @@ def load_player(uid: str, name: str) -> Player:
                     upg[cid] = UpgradeProgress(level=val, parts=[])
                 else:
                     upg[cid] = UpgradeProgress()
-            data["upgrades"] = up
-            
+
+            data["upgrades"] = upg
             return Player(**data)
         except Exception:
             pass
