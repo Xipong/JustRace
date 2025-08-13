@@ -2,8 +2,8 @@ import os, json
 from typing import Optional, Dict, Callable
 from pathlib import Path
 from datetime import date
-from .models_v2 import Car, Track, TrackSegment, DriverProfile, run_race
-from .economy_v1 import (
+from models_v2 import Car, Track, TrackSegment, DriverProfile, run_race
+from economy_v1 import (
     load_player,
     save_player,
     list_catalog,

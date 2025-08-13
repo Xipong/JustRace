@@ -6,8 +6,15 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-from .economy_v1 import load_player, list_catalog, buy_car, set_current_car, list_tracks, set_current_track
-from .game_api import run_player_race
+from economy_v1 import (
+    load_player,
+    list_catalog,
+    buy_car,
+    set_current_car,
+    list_tracks,
+    set_current_track,
+)
+from game_api import run_player_race
 
 DATA_DIR = Path(os.getenv("GAME_DATA_DIR", "./data"))
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -115,7 +122,7 @@ async def driver(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not p.driver_json:
         await send_html(update, "Профиль пилота появится после первой гонки (<code>/race</code>).")
         return
-    from .models_v2 import DriverProfile
+    from models_v2 import DriverProfile
     d = DriverProfile.from_json(p.driver_json)
     skills = asdict(d)
     lines = ["<b>Навыки пилота:</b>"]
@@ -213,7 +220,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("settrack", settrack_cmd))
     app.add_handler(CommandHandler("race", race))
     app.add_handler(CallbackQueryHandler(on_callback))
-    from . import bot_lobby
+    import bot_lobby
     bot_lobby.setup(app)
     app.add_error_handler(error_handler)
     return app

@@ -1,9 +1,9 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-from .economy_v1 import load_player
-from .lobby import create_lobby, join_lobby, leave_lobby, start_lobby_race
-from .bot import esc, _uid, _uname, send_html
+from economy_v1 import load_player
+from lobby import create_lobby, join_lobby, leave_lobby, start_lobby_race
+from bot import esc, _uid, _uname, send_html
 
 
 async def lobby_create_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
