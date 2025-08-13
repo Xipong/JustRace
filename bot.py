@@ -213,6 +213,8 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("settrack", settrack_cmd))
     app.add_handler(CommandHandler("race", race))
     app.add_handler(CallbackQueryHandler(on_callback))
+    from . import bot_lobby
+    bot_lobby.setup(app)
     app.add_error_handler(error_handler)
     return app
 

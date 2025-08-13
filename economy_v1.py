@@ -29,6 +29,8 @@ class Player:
     current_car: Optional[str] = None
     current_track: Optional[str] = None
     driver_json: Optional[str] = None
+    races_today: int = 0
+    last_race_day: Optional[str] = None
 
     def __post_init__(self):
         if self.garage is None:
@@ -48,6 +50,8 @@ def load_player(uid: str, name: str) -> Player:
             data.setdefault("name", name)
             data.setdefault("balance", DEFAULT_START_BALANCE)
             data.setdefault("garage", [])
+            data.setdefault("races_today", 0)
+            data.setdefault("last_race_day", None)
             return Player(**data)
         except Exception:
             pass
