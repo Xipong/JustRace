@@ -1,10 +1,12 @@
 import os, json
 from typing import Optional, Dict, Callable
 from pathlib import Path
+from datetime import date
 from .models_v2 import Car, Track, TrackSegment, DriverProfile, run_race
 from .economy_v1 import load_player, save_player, list_catalog, payout_for_race, reward_player
 
 DATA_DIR = Path(os.getenv("GAME_DATA_DIR", "./data"))
+MAX_RACES_PER_DAY = 5
 
 def load_track(path: Path) -> Track:
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -32,6 +34,16 @@ def save_driver(p, d: DriverProfile):
     p.driver_json = d.to_json()
     save_player(p)
 
+def _check_daily_limit(p):
+    today = date.today().isoformat()
+    if p.last_race_day != today:
+        p.last_race_day = today
+        p.races_today = 0
+    if p.races_today >= MAX_RACES_PER_DAY:
+        raise RuntimeError(f"Лимит гонок на сегодня исчерпан ({MAX_RACES_PER_DAY}).")
+    p.races_today += 1
+    save_player(p)
+
 def run_player_race(user_id: str, name: str, track_id: Optional[str]=None, laps: int=1,
                     on_event: Optional[Callable[[Dict], None]] = None) -> Dict:
     p = load_player(user_id, name)
@@ -47,6 +59,8 @@ def run_player_race(user_id: str, name: str, track_id: Optional[str]=None, laps:
     if not tpath.exists():
         raise RuntimeError(f"Файл трассы не найден: {tpath}")
     track = load_track(tpath)
+
+    _check_daily_limit(p)
 
     summary, gains = run_race(car, track, laps=laps, driver=d, on_event=on_event)
     cat = list_catalog()
