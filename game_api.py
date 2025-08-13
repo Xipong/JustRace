@@ -9,12 +9,10 @@ from economy_v1 import (
     list_catalog,
     payout_for_race,
     reward_player,
-    UPGRADE_POWER_BONUS,
-    UPGRADE_WEIGHT_BONUS,
-    UPGRADE_GRIP_BONUS,
+    UPGRADE_EFFECTS,
     UPGRADE_CLASSES,
     PARTS_PER_CLASS,
-    installed_parts,
+    all_installed_parts,
     buy_upgrade,
     upgrade_status,
     list_upgrade_parts,
@@ -100,11 +98,12 @@ def run_player_race(user_id: str, name: str, track_id: Optional[str]=None, laps:
     progress = p.upgrades.get(car.id)
     if progress:
         max_parts = UPGRADE_CLASSES.get(tier, 0) * PARTS_PER_CLASS
-        total_parts = min(installed_parts(progress), max_parts)
-        if total_parts:
-            car.power *= 1.0 + UPGRADE_POWER_BONUS * total_parts
-            car.mass *= max(0.0, 1.0 - UPGRADE_WEIGHT_BONUS * total_parts)
-            car.tire_grip *= 1.0 + UPGRADE_GRIP_BONUS * total_parts
+        applied = all_installed_parts(progress)[:max_parts]
+        for pid in applied:
+            eff = UPGRADE_EFFECTS.get(pid, {})
+            car.power *= 1.0 + eff.get("power", 0.0)
+            car.mass *= 1.0 + eff.get("mass", 0.0)
+            car.tire_grip *= 1.0 + eff.get("tire_grip", 0.0)
 
     tid = track_id or p.current_track
     if not tid:

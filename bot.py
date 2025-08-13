@@ -18,6 +18,8 @@ from bot_kb import (
     catalog_kb,
     tracks_kb,
     upgrade_parts_kb,
+    driver_kb,
+    lobby_main_kb,
 )
 from economy_v1 import (
     load_player,
@@ -29,8 +31,8 @@ from economy_v1 import (
     car_stats,
     redeem_bonus_code,
 )
-from game_api import run_player_race, get_upgrade_status, list_available_upgrades, buy_car_upgrade
-from lobby import find_user_lobby
+from game_api import run_player_race, get_upgrade_status, list_available_upgrades, buy_car_upgrade, load_car_by_id
+from lobby import find_user_lobby, create_lobby, join_lobby, leave_lobby, LOBBIES
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("racing-bot")
@@ -146,8 +148,9 @@ async def setcar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def driver(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
     p = load_player(uid, name)
+    kb = driver_kb()
     if not p.driver_json:
-        await send_html(update, "Профиль пилота появится после первой гонки (<code>/race</code>).")
+        await send_html(update, "Профиль пилота появится после первой гонки (<code>/race</code>).", reply_markup=kb)
         return
     from models_v2 import DriverProfile
     d = DriverProfile.from_json(p.driver_json)
@@ -156,7 +159,30 @@ async def driver(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for k in ["braking","consistency","stress","throttle","cornering","starts"]:
         if k in skills:
             lines.append(f"{esc(k.capitalize())}: {skills[k]:.1f}")
-    await send_html(update, "\n".join(lines))
+    await send_html(update, "\n".join(lines), reply_markup=kb)
+
+
+async def lobby_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = _uid(update); name = _uname(update)
+    p = load_player(uid, name)
+    lid = find_user_lobby(uid)
+    if lid:
+        info = LOBBIES.get(lid, {})
+        players = info.get("players", [])
+        lines = [f"<b>Лобби {esc(lid)}</b>"]
+        for pl in players:
+            car = pl.get("car", "?")
+            lines.append(f"- {esc(pl['name'])} — {esc(car)}")
+        host = players and players[0]["user_id"] == uid
+        kb = lobby_main_kb(lid, host)
+    else:
+        lines = [
+            "Ты не в лобби.",
+            "Создай: <code>/lobby_create &lt;track_id&gt;</code>",
+            "Вступи: <code>/lobby_join &lt;id&gt;</code>",
+        ]
+        kb = lobby_main_kb()
+    await send_html(update, "\n".join(lines), reply_markup=kb)
 
 async def track_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.effective_chat.send_message("<b>Выбор трассы:</b>", parse_mode=ParseMode.HTML, reply_markup=tracks_kb())
@@ -263,34 +289,61 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if not query or not query.data:
         return
+    await query.answer()
+    try:
+        await query.edit_message_reply_markup(reply_markup=None)
+    except Exception:
+        pass
     data = query.data
     uid = _uid(update); name = _uname(update)
     if data == "nav:catalog":
-        await query.answer()
         await catalog(update, context)
     elif data.startswith("buy:"):
-        await query.answer()
         p = load_player(uid, name)
         await send_html(update, esc(buy_car(p, data.split(":",1)[1])))
     elif data == "nav:tracks":
-        await query.answer()
         await track_cmd(update, context)
     elif data.startswith("settrack:"):
-        await query.answer()
         p = load_player(uid, name)
         await send_html(update, esc(set_current_track(p, data.split(":",1)[1])))
     elif data == "nav:garage":
-        await query.answer()
         await garage(update, context)
     elif data == "nav:help":
-        await query.answer()
         await help_cmd(update, context)
+    elif data == "nav:driver":
+        await driver(update, context)
+    elif data == "nav:bonus":
+        await send_html(update, "Использование: <code>/bonus &lt;код&gt;</code>")
+    elif data == "nav:lobby":
+        await lobby_menu(update, context)
+    elif data == "lobby_create":
+        p = load_player(uid, name)
+        if not p.current_track or not p.current_car:
+            await send_html(update, "Сначала выбери машину и трассу")
+        else:
+            lid = create_lobby(p.current_track)
+            car = load_car_by_id(p.current_car)
+            join_lobby(
+                lid,
+                uid,
+                name,
+                chat_id=str(update.effective_chat.id),
+                mass=car.mass,
+                power=car.power,
+                car=car.name,
+            )
+            from bot_lobby import broadcast_lobby_state
+            await broadcast_lobby_state(lid, getattr(context, "bot", None))
+    elif data.startswith("lobby_leave:"):
+        lid = data.split(":",1)[1]
+        leave_lobby(lid, uid)
+        await send_html(update, "Лобби покинуто")
+        from bot_lobby import broadcast_lobby_state
+        await broadcast_lobby_state(lid, getattr(context, "bot", None))
     elif data.startswith("upgrades:"):
-        await query.answer()
         car_id = data.split(":",1)[1]
         await show_upgrades_menu(update, uid, name, car_id)
     elif data.startswith("buyupg:"):
-        await query.answer()
         _, car_id, part_id = data.split(":", 2)
         msg = buy_car_upgrade(uid, name, car_id, part_id)
         await send_html(update, esc(msg))
@@ -321,6 +374,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("garage", garage))
     app.add_handler(CommandHandler("setcar", setcar_cmd))
     app.add_handler(CommandHandler("driver", driver))
+    app.add_handler(CommandHandler("lobby", lobby_menu))
     app.add_handler(CommandHandler("track", track_cmd))
     app.add_handler(CommandHandler("settrack", settrack_cmd))
     app.add_handler(CommandHandler("upgrades", upgrades_cmd))

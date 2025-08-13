@@ -29,9 +29,28 @@ UPGRADE_CLASSES = {
     "hyper": 1,
 }
 UPGRADE_COST_MULT = 0.1  # fraction of car price per part
-UPGRADE_POWER_BONUS = 0.05  # 5% power increase per part
-UPGRADE_WEIGHT_BONUS = 0.02  # 2% weight reduction per part
-UPGRADE_GRIP_BONUS = 0.01  # 1% grip increase per part
+
+# individual upgrade effects per installed part
+# values represent fractional change applied multiplicatively
+UPGRADE_EFFECTS: Dict[str, Dict[str, float]] = {
+    "engine": {"power": 0.06, "engine_volume": 0.02},
+    "turbo": {"power": 0.08, "engine_volume": 0.01},
+    "exhaust": {"power": 0.03},
+    "intake": {"power": 0.02},
+    "ecu": {"power": 0.04},
+    "fuel": {"power": 0.03},
+    "cooling": {"power": 0.02},
+    "transmission": {"power": 0.02, "mass": -0.003},
+    "suspension": {"tire_grip": 0.02},
+    "tires": {"tire_grip": 0.03},
+    "aero": {"tire_grip": 0.01, "mass": -0.002},
+    "weight": {"mass": -0.01},
+}
+
+def fmt_money(v: int) -> str:
+    """Format integer value with spaces for thousands."""
+    return f"{v:,}".replace(",", " ")
+
 # available upgrade parts
 UPGRADE_PARTS = {
     "engine": "Двигатель",
@@ -80,6 +99,16 @@ class UpgradeProgress:
 def installed_parts(progress: UpgradeProgress) -> int:
     """Return total installed upgrade parts across all completed classes."""
     return progress.level * PARTS_PER_CLASS + len(progress.parts)
+
+
+def all_installed_parts(progress: UpgradeProgress) -> List[str]:
+    """Return list of part ids installed across all levels."""
+    parts: List[str] = []
+    full = list(UPGRADE_PARTS.keys())
+    for _ in range(progress.level):
+        parts.extend(full)
+    parts.extend(progress.parts)
+    return parts
 
 
 def custom_upgrade_info(car: Dict, level: int) -> Dict[str, str]:
@@ -239,7 +268,7 @@ def buy_car(p: Player, car_id: str) -> str:
     item = cat["cars"][car_id]
     price = item["price"]
     if p.balance < price:
-        return f"💸 Не хватает средств: нужно {price}, на счету {p.balance}."
+        return f"💸 Не хватает средств: нужно {fmt_money(price)}, на счету {fmt_money(p.balance)}."
     p.balance -= price
     p.garage.append(car_id)
     if p.current_car is None:
@@ -248,9 +277,11 @@ def buy_car(p: Player, car_id: str) -> str:
     stats = car_stats(p, car_id)
     power = int(stats["base_power"])
     mass = int(stats["base_mass"])
+    volume = stats.get("base_engine_volume", 0)
+    vol_txt = f", Объем: {volume:.2f} л" if volume else ""
     return (
-        f"✅ Покупка: {item['name']} за {price}. "
-        f"Мощность: {power} л.с., Вес: {mass} кг. Баланс: {p.balance}."
+        f"✅ Покупка: {item['name']} за {fmt_money(price)}. "
+        f"Мощность: {power} л.с., Вес: {mass} кг{vol_txt}. Баланс: {fmt_money(p.balance)}."
     )
 
 def set_current_car(p: Player, car_id: str) -> str:
@@ -291,26 +322,45 @@ def car_stats(p: Player, car_id: str) -> Dict[str, float]:
     """Return base and upgraded stats for a player's car."""
     cat = list_catalog()
     if car_id not in cat["cars"]:
-        return {"power": 0, "mass": 0, "tire_grip": 0, "base_power": 0, "base_mass": 0, "base_tire_grip": 0}
+        return {
+            "power": 0,
+            "mass": 0,
+            "tire_grip": 0,
+            "engine_volume": 0,
+            "base_power": 0,
+            "base_mass": 0,
+            "base_tire_grip": 0,
+            "base_engine_volume": 0,
+        }
     data = json.loads((DATA_DIR / "cars" / f"{car_id}.json").read_text(encoding="utf-8"))
     base_power = data.get("power", 0)
     base_mass = data.get("mass", 0)
     base_grip = data.get("tire_grip", 0.0)
+    base_volume = data.get("engine_volume", 0.0)
     item = cat["cars"][car_id]
     tier = item.get("tier", "starter")
     progress = p.upgrades.get(car_id, UpgradeProgress())
     max_parts = UPGRADE_CLASSES.get(tier, 0) * PARTS_PER_CLASS
-    total_parts = min(installed_parts(progress), max_parts)
-    power = base_power * (1 + UPGRADE_POWER_BONUS * total_parts)
-    mass = base_mass * max(0.0, 1 - UPGRADE_WEIGHT_BONUS * total_parts)
-    grip = base_grip * (1 + UPGRADE_GRIP_BONUS * total_parts)
+    applied = all_installed_parts(progress)[:max_parts]
+    power = base_power
+    mass = base_mass
+    grip = base_grip
+    volume = base_volume
+    for pid in applied:
+        eff = UPGRADE_EFFECTS.get(pid, {})
+        power *= 1 + eff.get("power", 0.0)
+        mass *= 1 + eff.get("mass", 0.0)
+        grip *= 1 + eff.get("tire_grip", 0.0)
+        volume *= 1 + eff.get("engine_volume", 0.0)
     return {
         "power": power,
         "mass": mass,
         "tire_grip": grip,
+        "engine_volume": volume,
         "base_power": base_power,
         "base_mass": base_mass,
         "base_tire_grip": base_grip,
+        "base_engine_volume": base_volume,
     }
 
 
@@ -333,13 +383,21 @@ def buy_upgrade(p: Player, car_id: str, part_id: str) -> str:
         total_installed = installed_parts(progress)
         cost = int(item["price"] * UPGRADE_COST_MULT * (total_installed + 1))
         if p.balance < cost:
-            return f"💸 Не хватает средств: нужно {cost}, на счету {p.balance}."
+            return f"💸 Не хватает средств: нужно {fmt_money(cost)}, на счету {fmt_money(p.balance)}."
+        before = car_stats(p, car_id)
         p.balance -= cost
         progress.custom_done = True
         p.upgrades[car_id] = progress
         save_player(p)
+        after = car_stats(p, car_id)
+        dp = after["power"] - before["power"]
+        dm = after["mass"] - before["mass"]
+        dv = after["engine_volume"] - before["engine_volume"]
         info = custom_upgrade_info(item, progress.level + 1)
-        return f"✨ {info['name']} для {item['name']} за {cost}. Баланс: {p.balance}."
+        return (
+            f"✨ {info['name']} для {item['name']} за {fmt_money(cost)}. "
+            f"Δмощн {dp:+.0f}, Δвес {dm:+.0f}, Δобъем {dv:+.2f} л. Баланс: {fmt_money(p.balance)}."
+        )
     if part_id not in UPGRADE_PARTS:
         return "🚫 Нет такой запчасти."
     if part_id in progress.parts:
@@ -347,7 +405,8 @@ def buy_upgrade(p: Player, car_id: str, part_id: str) -> str:
     total_installed = installed_parts(progress)
     cost = int(item["price"] * UPGRADE_COST_MULT * (total_installed + 1))
     if p.balance < cost:
-        return f"💸 Не хватает средств: нужно {cost}, на счету {p.balance}."
+        return f"💸 Не хватает средств: нужно {fmt_money(cost)}, на счету {fmt_money(p.balance)}."
+    before = car_stats(p, car_id)
     p.balance -= cost
     progress.parts.append(part_id)
     parts_count = len(progress.parts)
@@ -362,11 +421,15 @@ def buy_upgrade(p: Player, car_id: str, part_id: str) -> str:
         current_level = progress.level + 1
     p.upgrades[car_id] = progress
     save_player(p)
+    after = car_stats(p, car_id)
+    dp = after["power"] - before["power"]
+    dm = after["mass"] - before["mass"]
+    dv = after["engine_volume"] - before["engine_volume"]
     name = UPGRADE_PARTS[part_id]
     display_count = parts_count if not msg_end else PARTS_PER_CLASS
     return (
         f"🔧 {name} {display_count}/{PARTS_PER_CLASS} уровня {current_level}/{max_classes} "
-        f"для {item['name']} за {cost}. Баланс: {p.balance}." + msg_end
+        f"для {item['name']} за {fmt_money(cost)}. Δмощн {dp:+.0f}, Δвес {dm:+.0f}, Δобъем {dv:+.2f} л. Баланс: {fmt_money(p.balance)}." + msg_end
     )
 
 
