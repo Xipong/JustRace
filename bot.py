@@ -28,6 +28,7 @@ from economy_v1 import (
     set_current_track,
 )
 from game_api import run_player_race, get_upgrade_status, list_available_upgrades, buy_car_upgrade
+from lobby import find_user_lobby
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("racing-bot")
@@ -176,6 +177,10 @@ async def show_upgrades_menu(update, uid, name, car_id):
 
 async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
+    lid = find_user_lobby(uid)
+    if lid:
+        await send_html(update, f"Ты в лобби {esc(lid)}. Выйди: /lobby_leave {esc(lid)}")
+        return
     loop = asyncio.get_running_loop()
 
     def on_evt(evt: Dict):

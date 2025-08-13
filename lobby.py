@@ -28,6 +28,14 @@ def create_lobby(track_id: str) -> str:
     return lid
 
 
+def find_user_lobby(user_id: str) -> Optional[str]:
+    """Вернуть ID лобби, в котором состоит пользователь, если есть."""
+    for lid, info in LOBBIES.items():
+        if any(p["user_id"] == user_id for p in info["players"]):
+            return lid
+    return None
+
+
 def join_lobby(
     lobby_id: str,
     user_id: str,
@@ -40,6 +48,9 @@ def join_lobby(
     lobby = LOBBIES.get(lobby_id)
     if not lobby:
         raise RuntimeError("Лобби не найдено")
+    other = find_user_lobby(user_id)
+    if other and other != lobby_id:
+        raise RuntimeError(f"Сначала выйди из лобби {other}")
     if len(lobby["players"]) >= MAX_PLAYERS:
         raise RuntimeError("Лобби заполнено (макс 8)")
     if user_id not in [p["user_id"] for p in lobby["players"]]:

@@ -5,7 +5,14 @@ from typing import Dict, List
 
 from economy_v1 import load_player
 from game_api import load_car_by_id
-from lobby import create_lobby, join_lobby, leave_lobby, start_lobby_race, LOBBIES
+from lobby import (
+    create_lobby,
+    join_lobby,
+    leave_lobby,
+    start_lobby_race,
+    LOBBIES,
+    find_user_lobby,
+)
 from bot import esc, _uid, _uname, send_html
 
 
@@ -52,19 +59,24 @@ async def lobby_join_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def lobby_leave_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update)
-    if not context.args:
-        await send_html(update, "Использование: <code>/lobby_leave &lt;id&gt;</code>")
+    lid = context.args[0] if context.args else find_user_lobby(uid)
+    if not lid:
+        await send_html(update, "Ты не в лобби")
         return
-    leave_lobby(context.args[0], uid)
+    leave_lobby(lid, uid)
     await send_html(update, "Лобби покинуто")
 
 
 async def lobby_start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = _uid(update)
     if not context.args:
         await send_html(update, "Использование: <code>/lobby_start &lt;id&gt;</code>")
         return
     lid = context.args[0]
     lobby_info = LOBBIES.get(lid, {})
+    if uid not in [p["user_id"] for p in lobby_info.get("players", [])]:
+        await send_html(update, "Сначала присоединись к лобби")
+        return
     player_stats = lobby_info.get("players", [])
 
     groups: Dict[str, List[Dict]] = {}

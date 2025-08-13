@@ -3,6 +3,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import lobby
 import bot_lobby
+import bot
 import asyncio
 
 
@@ -84,7 +85,7 @@ def test_group_start_messages(monkeypatch):
             self.bot = FakeBot()
 
     class FakeUpdate:
-        pass
+        effective_user = type("U", (), {"id": "u1", "full_name": "A"})()
 
     asyncio.run(bot_lobby.lobby_start_cmd(FakeUpdate(), FakeContext()))
 
@@ -93,3 +94,65 @@ def test_group_start_messages(monkeypatch):
     assert "tg://user?id=u1" in sent[0][1]
     assert "tg://user?id=u2" in sent[0][1]
     assert sent[1][0] == 10
+
+
+def test_join_twice_forbidden():
+    lobby.reset_lobbies()
+    lid1 = lobby.create_lobby("track1")
+    lobby.join_lobby(lid1, "u1", "A", chat_id="c1", mass=1000, power=100)
+    lid2 = lobby.create_lobby("track2")
+    with pytest.raises(RuntimeError):
+        lobby.join_lobby(lid2, "u1", "A", chat_id="c2", mass=1000, power=100)
+
+
+def test_leave_without_id():
+    lobby.reset_lobbies()
+    lid = lobby.create_lobby("track1")
+    lobby.join_lobby(lid, "u1", "A", chat_id="c1", mass=1000, power=100)
+
+    messages = []
+
+    class FakeChat:
+        async def send_message(self, text, parse_mode=None, reply_markup=None):
+            messages.append(text)
+
+    class FakeUpdate:
+        effective_chat = FakeChat()
+        effective_user = type("U", (), {"id": "u1", "full_name": "A"})()
+
+    class FakeContext:
+        def __init__(self, args=None):
+            self.args = args or []
+
+    asyncio.run(bot_lobby.lobby_leave_cmd(FakeUpdate(), FakeContext()))
+    assert lobby.find_user_lobby("u1") is None
+    assert any("Лобби покинуто" in m for m in messages)
+
+
+def test_race_blocked_when_in_lobby(monkeypatch):
+    lobby.reset_lobbies()
+    lid = lobby.create_lobby("track1")
+    lobby.join_lobby(lid, "u1", "A", chat_id="c1", mass=1000, power=100)
+
+    messages = []
+
+    class FakeChat:
+        async def send_message(self, text, parse_mode=None, reply_markup=None):
+            messages.append(text)
+
+    class FakeUpdate:
+        effective_chat = FakeChat()
+        effective_user = type("U", (), {"id": "u1", "full_name": "A"})()
+
+    called = False
+
+    def fake_run(*a, **k):
+        nonlocal called
+        called = True
+        return {}
+
+    monkeypatch.setattr(bot, "run_player_race", fake_run)
+
+    asyncio.run(bot.race(FakeUpdate(), None))
+    assert called is False
+    assert any("лобби" in m for m in messages)
