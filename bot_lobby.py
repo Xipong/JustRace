@@ -13,7 +13,30 @@ from lobby import (
     LOBBIES,
     find_user_lobby,
 )
+from bot_kb import lobby_main_kb
 from bot import _uid, _uname, send_html, esc
+
+
+async def broadcast_lobby_state(lobby_id: str, bot) -> None:
+    if not bot:
+        return
+    lobby_info = LOBBIES.get(lobby_id)
+    if not lobby_info:
+        return
+    lines = [f"<b>Лобби {esc(lobby_id)}</b>"]
+    players = lobby_info.get("players", [])
+    for p in players:
+        car = p.get("car", "?")
+        lines.append(f"- {esc(p['name'])} — {esc(car)}")
+    msg = "\n".join(lines)
+    for p in players:
+        is_host = players[0]["user_id"] == p["user_id"] if players else False
+        await bot.send_message(
+            int(p["chat_id"]),
+            msg,
+            parse_mode=ParseMode.HTML,
+            reply_markup=lobby_main_kb(lobby_id, is_host),
+        )
 
 async def lobby_create_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update)
@@ -50,8 +73,11 @@ async def lobby_join_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=chat_id,
             mass=car.mass,
             power=car.power,
+            car=car.name,
         )
-        await send_html(update, f"Присоединился к лобби {esc(context.args[0])}")
+        lid = context.args[0]
+        await send_html(update, f"Присоединился к лобби {esc(lid)}")
+        await broadcast_lobby_state(lid, getattr(context, "bot", None))
     except Exception as e:
         await send_html(update, f"❌ {esc(e)}")
 
@@ -64,6 +90,7 @@ async def lobby_leave_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     leave_lobby(lid, uid)
     await send_html(update, "Лобби покинуто")
+    await broadcast_lobby_state(lid, getattr(context, "bot", None))
 
 
 async def lobby_start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):

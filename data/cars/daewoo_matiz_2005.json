@@ -6,5 +6,6 @@
   "cd": 0.35,
   "area": 1.9,
   "tire_grip": 0.9,
+  "engine_volume": 0.8,
   "price": 2500
 }
