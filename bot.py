@@ -11,6 +11,7 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.request import HTTPXRequest
 
+
 from economy_v1 import (
     load_player,
     list_catalog,

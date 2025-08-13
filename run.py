@@ -11,5 +11,6 @@ load_dotenv()
 # ``bot`` module instead so the bot can be started via ``python run.py``.
 from bot import main
 
+
 if __name__ == "__main__":
     main()
