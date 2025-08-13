@@ -11,3 +11,6 @@ def test_main_menu_has_buttons():
     assert "Гараж" in labels
     assert "Каталог" in labels
     assert "Трассы" in labels
+    assert "Водитель" in labels
+    assert "Лобби" in labels
+    assert "Промокод" in labels

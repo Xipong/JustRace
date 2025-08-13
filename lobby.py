@@ -44,6 +44,7 @@ def join_lobby(
     chat_id: str,
     mass: float = 0.0,
     power: float = 0.0,
+    car: str = "",
 ) -> None:
     lobby = LOBBIES.get(lobby_id)
     if not lobby:
@@ -63,6 +64,7 @@ def join_lobby(
                 "chat_id": chat_id,
                 "mass": mass,
                 "power": power,
+                "car": car,
             }
         )
 
