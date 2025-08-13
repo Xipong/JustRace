@@ -1,6 +1,6 @@
 import os, asyncio, html, logging
 from dataclasses import asdict
-from typing import Dict, List
+from typing import Dict
 from pathlib import Path
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
@@ -137,32 +137,35 @@ async def settrack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
-    events: List[Dict] = []
+    loop = asyncio.get_running_loop()
+    last_sent = -20.0
 
     def on_evt(evt: Dict):
-        events.append(evt)
+        nonlocal last_sent
+        etype = evt.get("type")
+        msg = None
+        if etype == "penalty":
+            sev = esc(evt.get("severity", "minor"))
+            msg = f"⚠️ Пенальти ({sev}): +{evt['delta_s']:.2f}s на {esc(evt['segment'])} (нагрузка {evt['load']:.2f})"
+        elif etype in ("segment_change", "segment_tick"):
+            msg = f"➡️ {esc(evt['segment'])}"
+        elif etype == "lap_complete":
+            msg = f"🏁 Круг {evt['lap']} — {evt['time_s']:.2f}s"
+        elif etype == "race_complete":
+            msg = f"🏁 Гонка — {evt['time_s']:.2f}s, инцидентов: {evt.get('incidents',0)}"
+        elif etype == "skill_up":
+            msg = f"📈 {esc(evt['skill'])} +{evt['delta']:.2f} → {evt['new']:.1f}"
+        t = evt.get("time_s", last_sent)
+        if msg and (t - last_sent) >= 20.0:
+            asyncio.run_coroutine_threadsafe(send_html(update, msg), loop)
+            last_sent = t
 
-    loop = asyncio.get_running_loop()
     try:
         result = await loop.run_in_executor(None, lambda: run_player_race(uid, name, laps=1, on_event=on_evt))
     except Exception as e:
         logger.exception("Race error")
         await send_html(update, f"❌ {esc(e)}")
         return
-
-    for evt in events:
-        t = evt.get("type")
-        if t == "penalty":
-            sev = esc(evt.get("severity", "minor"))
-            await send_html(update, f"⚠️ Пенальти ({sev}): +{evt['delta_s']:.2f}s на {esc(evt['segment'])} (нагрузка {evt['load']:.2f})")
-        elif t == "segment_change":
-            await send_html(update, f"➡️ {esc(evt['segment'])}")
-        elif t == "lap_complete":
-            await send_html(update, f"🏁 Круг {evt['lap']} — {evt['time_s']:.2f}s")
-        elif t == "race_complete":
-            await send_html(update, f"🏁 Гонка — {evt['time_s']:.2f}s, инцидентов: {evt.get('incidents',0)}")
-        elif t == "skill_up":
-            await send_html(update, f"📈 {esc(evt['skill'])} +{evt['delta']:.2f} → {evt['new']:.1f}")
 
     await send_html(update, f"<b>Итог:</b> время {result['time_s']:.2f}s, инцидентов {result['incidents']}, награда {fmt_money(result['reward'])}")
 
@@ -210,6 +213,8 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("settrack", settrack_cmd))
     app.add_handler(CommandHandler("race", race))
     app.add_handler(CallbackQueryHandler(on_callback))
+    from . import bot_lobby
+    bot_lobby.setup(app)
     app.add_error_handler(error_handler)
     return app
 

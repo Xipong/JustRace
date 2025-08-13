@@ -27,71 +27,71 @@
     }
   },
   "cars": {
-    "nexia_1995": {
-      "path": "/mnt/data/justrace_release/data/cars/nexia_1995.json",
-      "price": 3500,
-      "tier": "starter",
-      "name": "Daewoo Nexia GL"
-    },
-    "mercedes": {
-      "path": "/mnt/data/justrace_release/data/cars/mercedes.json",
-      "price": 220000,
-      "tier": "gt",
-      "name": "Mercedes-AMG GT3"
-    },
     "bugatti": {
-      "path": "/mnt/data/justrace_release/data/cars/bugatti.json",
+      "path": "data/cars/bugatti.json",
       "price": 450000,
       "tier": "hyper",
       "name": "Bugatti Chiron"
     },
-    "golf_gti_mk7": {
-      "path": "/mnt/data/justrace_release/data/cars/golf_gti_mk7.json",
-      "price": 18000,
-      "tier": "club",
-      "name": "Volkswagen Golf GTI (Mk7)"
-    },
-    "porsche_gt3_992": {
-      "path": "/mnt/data/justrace_release/data/cars/porsche_gt3_992.json",
-      "price": 180000,
-      "tier": "gt",
-      "name": "Porsche 911 GT3 (992)"
-    },
     "daewoo_matiz_2005": {
-      "path": "/mnt/data/justrace_release/data/cars/daewoo_matiz_2005.json",
+      "path": "data/cars/daewoo_matiz_2005.json",
       "price": 2500,
       "tier": "starter",
       "name": "Daewoo Matiz 0.8 (2005)"
     },
-    "lada_2107": {
-      "path": "/mnt/data/justrace_release/data/cars/lada_2107.json",
-      "price": 3000,
-      "tier": "starter",
-      "name": "Lada 2107 1.5"
-    },
-    "nissan_micra_k11": {
-      "path": "/mnt/data/justrace_release/data/cars/nissan_micra_k11.json",
-      "price": 3200,
-      "tier": "starter",
-      "name": "Nissan Micra K11 1.0"
-    },
     "fiat_panda_2007": {
-      "path": "/mnt/data/justrace_release/data/cars/fiat_panda_2007.json",
+      "path": "data/cars/fiat_panda_2007.json",
       "price": 3300,
       "tier": "starter",
       "name": "Fiat Panda 1.1 (2007)"
     },
+    "golf_gti_mk7": {
+      "path": "data/cars/golf_gti_mk7.json",
+      "price": 18000,
+      "tier": "club",
+      "name": "Volkswagen Golf GTI (Mk7)"
+    },
     "hyundai_getz_2003": {
-      "path": "/mnt/data/justrace_release/data/cars/hyundai_getz_2003.json",
+      "path": "data/cars/hyundai_getz_2003.json",
       "price": 3400,
       "tier": "starter",
       "name": "Hyundai Getz 1.1 (2003)"
     },
+    "lada_2107": {
+      "path": "data/cars/lada_2107.json",
+      "price": 3000,
+      "tier": "starter",
+      "name": "Lada 2107 1.5"
+    },
+    "mercedes": {
+      "path": "data/cars/mercedes.json",
+      "price": 220000,
+      "tier": "gt",
+      "name": "Mercedes-AMG GT3"
+    },
+    "nexia_1995": {
+      "path": "data/cars/nexia_1995.json",
+      "price": 3500,
+      "tier": "starter",
+      "name": "Daewoo Nexia GL"
+    },
+    "nissan_micra_k11": {
+      "path": "data/cars/nissan_micra_k11.json",
+      "price": 3200,
+      "tier": "starter",
+      "name": "Nissan Micra K11 1.0"
+    },
     "opel_corsa_b_1999": {
-      "path": "/mnt/data/justrace_release/data/cars/opel_corsa_b_1999.json",
+      "path": "data/cars/opel_corsa_b_1999.json",
       "price": 3600,
       "tier": "starter",
       "name": "Opel Corsa B 1.2 (1999)"
+    },
+    "porsche_gt3_992": {
+      "path": "data/cars/porsche_gt3_992.json",
+      "price": 180000,
+      "tier": "gt",
+      "name": "Porsche 911 GT3 (992)"
     }
   }
 }

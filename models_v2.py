@@ -125,6 +125,9 @@ class RaceEngine:
         self.rho = 1.225
         self.random = random.Random(seed)
         self.on_event = on_event
+        # Время последнего события сегмента. Нужен для регулярных "тиков"
+        # чтобы не зависеть от длины сегмента и не спамить сообщениями.
+        self._last_seg_evt_time = 0.0
 
     @property
     def current_segment(self) -> TrackSegment:
@@ -146,7 +149,14 @@ class RaceEngine:
             self.state.total_time += dt
             self.state.penalties.append({"type": "minor", "delta_s": dt, "segment": seg_name, "load": lam})
             self.state.incidents += 1
-            self._notify({"type": "penalty", "severity": "minor", "delta_s": dt, "segment": seg_name, "load": lam})
+            self._notify({
+                "type": "penalty",
+                "severity": "minor",
+                "delta_s": dt,
+                "segment": seg_name,
+                "load": lam,
+                "time_s": self.state.total_time,
+            })
             return True
         if MAJOR_MISTAKES and (self.random.random() < MAJOR_MISTAKE_RATE):
             from random import uniform
@@ -154,16 +164,28 @@ class RaceEngine:
             self.state.total_time += dt
             self.state.penalties.append({"type": "major", "delta_s": dt, "segment": seg_name, "load": lam})
             self.state.incidents += 1
-            self._notify({"type": "penalty", "severity": "major", "delta_s": dt, "segment": seg_name, "load": lam})
+            self._notify({
+                "type": "penalty",
+                "severity": "major",
+                "delta_s": dt,
+                "segment": seg_name,
+                "load": lam,
+                "time_s": self.state.total_time,
+            })
             return True
         return False
 
     def _step_straight(self, seg: TrackSegment, dt: float):
-        a_long_max = (self.car.power_watts / max(self.state.speed, 1.0)) / self.car.mass
+        v = max(self.state.speed, 1.0)
+        drag_power = 0.5 * self.car.cd * self.rho * self.car.area * v ** 3
+        a_power = (self.car.power_watts - drag_power) / (self.car.mass * v)
+        a_tire = 9.81 * self.car.tire_grip
+        a_long_max = min(a_power, a_tire)
         if self.use_rr:
             a_long_max -= 9.81 * self.c_rr
-        lam = max(0.1, seg.entry_complexity * 0.05)
-        a_eff = min(a_long_max * seg.accel_coef * (1.0 - 0.04 * lam), a_long_max)
+        lam = 0.5 * (seg.entry_complexity + seg.exit_complexity)
+        lam_factor = max(0.08, 1.0 - 0.11 * lam)
+        a_eff = min(a_long_max * seg.accel_coef * lam_factor, a_long_max)
         self.state.speed = max(self.state.speed + a_eff * dt, 0.1)
         self.state.segment_distance += self.state.speed * dt
         self.state.total_time += dt
@@ -171,9 +193,10 @@ class RaceEngine:
     def _step_corner(self, seg: TrackSegment, dt: float):
         v_in = max(self.state.speed, 0.1)
         lam = max(0.1, 0.5 * (seg.entry_complexity + seg.exit_complexity))
-        v_target = self.car.vmax_power_limited * (self.car.tire_grip / 1.0) * (1.0 - 0.03 * lam)
-        v_target = max(8.0, min(v_target, 120.0))
-        a_long_max = 0.8 * 9.81 * (self.car.tire_grip - 0.1) / 3.0
+        v_factor = max(0.1, 1.0 - 0.10 * lam)
+        v_target = self.car.vmax_power_limited * v_factor
+        v_target = max(12.0, min(v_target, 120.0))
+        a_long_max = 0.8 * 9.81 * self.car.tire_grip
         a_eff = (v_target - v_in) / max(dt, 1e-3)
         a_eff = max(min(a_eff, a_long_max), -a_long_max)
         if self.state.speed > v_target:
@@ -192,6 +215,14 @@ class RaceEngine:
             self._step_straight(seg_before, dt)
         else:
             self._step_corner(seg_before, dt)
+        # Периодические события каждые 7.5с на одном участке
+        if (self.state.total_time - self._last_seg_evt_time) >= 7.5:
+            self._notify({
+                "type": "segment_tick",
+                "segment": seg_before.name,
+                "time_s": self.state.total_time,
+            })
+            self._last_seg_evt_time = self.state.total_time
         if self.state.segment_distance >= seg_before.length:
             excess = self.state.segment_distance - seg_before.length
             self.state.segment_distance = excess
@@ -199,12 +230,26 @@ class RaceEngine:
             if self.state.current_segment_idx >= len(self.track.segments):
                 self.state.current_segment_idx = 0
                 self.state.current_lap += 1
-                self._notify({"type": "lap_complete", "lap": self.state.current_lap - 1, "time_s": self.state.total_time})
+                self._notify({
+                    "type": "lap_complete",
+                    "lap": self.state.current_lap - 1,
+                    "time_s": self.state.total_time,
+                })
                 if self.state.current_lap > self.laps:
                     self.state.is_finished = True
-                    self._notify({"type": "race_complete", "time_s": self.state.total_time, "incidents": self.state.incidents})
+                    self._notify({
+                        "type": "race_complete",
+                        "time_s": self.state.total_time,
+                        "incidents": self.state.incidents,
+                    })
             else:
-                self._notify({"type": "segment_change", "segment": self.current_segment.name})
+                self._notify({
+                    "type": "segment_change",
+                    "segment": self.current_segment.name,
+                    "time_s": self.state.total_time,
+                })
+            # новая секция – сбрасываем таймер сегмента
+            self._last_seg_evt_time = self.state.total_time
 
     def run(self, dt: float = 0.1):
         while not self.state.is_finished:
