@@ -1,0 +1,1 @@
+# Add Telegram user IDs here, one per line, to grant premium status.

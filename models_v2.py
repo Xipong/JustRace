@@ -220,6 +220,11 @@ class RaceEngine:
             self._notify({
                 "type": "segment_tick",
                 "segment": seg_before.name,
+                "segment_id": self.state.current_segment_idx + 1,
+                "segment_length": seg_before.length,
+                "distance": self.state.segment_distance,
+                "lap": self.state.current_lap,
+                "laps": self.laps,
                 "time_s": self.state.total_time,
                 "speed": self.state.speed * 3.6,
             })
@@ -247,6 +252,9 @@ class RaceEngine:
                 self._notify({
                     "type": "segment_change",
                     "segment": self.current_segment.name,
+                    "segment_id": self.state.current_segment_idx + 1,
+                    "lap": self.state.current_lap,
+                    "laps": self.laps,
                     "time_s": self.state.total_time,
                     "speed": self.state.speed * 3.6,
                 })

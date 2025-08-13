@@ -169,20 +169,38 @@ async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = None
         if etype == "penalty":
             sev = esc(evt.get("severity", "minor"))
-            msg = f"⚠️ Пенальти ({sev}): +{evt['delta_s']:.2f}s на {esc(evt['segment'])} (нагрузка {evt['load']:.2f})"
+            msg = (
+                f"🚫 <b>Пенальти ({sev})</b>\n"
+                f"⏱ <i>+{evt['delta_s']:.2f}s</i> на {esc(evt['segment'])}\n"
+                f"📉 Нагрузка: {evt['load']:.2f}"
+            )
         elif etype == "segment_tick":
-            msg = f"⏱ {evt['time_s']:.2f}s, {evt['speed']:.1f} км/ч"
+            msg = (
+                f"🏎️ <b>Круг {evt['lap']}/{evt['laps']}</b>\n"
+                f"📍 <b>{esc(evt['segment'])}</b> <i>(ID {evt['segment_id']})</i>\n"
+                f"⚡️ <code>{evt['speed']:.1f} км/ч</code>\n"
+                f"⏰ <code>{evt['time_s']:.1f} сек</code>\n"
+                f"📊 <code>{evt['distance']:.0f}/{evt['segment_length']:.0f} м</code>"
+            )
             asyncio.run_coroutine_threadsafe(send_html(update, msg), loop)
             time.sleep(20.0)
             return
         elif etype == "segment_change":
-            msg = f"➡️ {esc(evt['segment'])}: {evt['time_s']:.2f}s, {evt['speed']:.1f} км/ч"
+            msg = (
+                f"🔁 <b>Новый участок: {esc(evt['segment'])}</b>\n"
+                f"⚡️ <code>{evt['speed']:.1f} км/ч</code>\n"
+                f"⏰ <code>{evt['time_s']:.1f} сек</code>"
+            )
         elif etype == "lap_complete":
-            msg = f"🏁 Круг {evt['lap']} — {evt['time_s']:.2f}s"
+            msg = f"🏁 <b>Круг {evt['lap']} завершён</b> — <code>{evt['time_s']:.2f}s</code>"
         elif etype == "race_complete":
-            msg = f"🏁 Гонка — {evt['time_s']:.2f}s, инцидентов: {evt.get('incidents',0)}"
+            msg = (
+                f"🏁 <b>Гонка завершена!</b>\n"
+                f"⏱ <code>{evt['time_s']:.2f}s</code>\n"
+                f"⚠️ Инцидентов: <code>{evt.get('incidents',0)}</code>"
+            )
         elif etype == "skill_up":
-            msg = f"📈 {esc(evt['skill'])} +{evt['delta']:.2f} → {evt['new']:.1f}"
+            msg = f"📈 <b>{esc(evt['skill'])}</b> +{evt['delta']:.2f} → {evt['new']:.1f}"
         if msg:
             asyncio.run_coroutine_threadsafe(send_html(update, msg), loop)
 
@@ -193,7 +211,10 @@ async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_html(update, f"❌ {esc(e)}")
         return
 
-    await send_html(update, f"<b>Итог:</b> время {result['time_s']:.2f}s, инцидентов {result['incidents']}, награда {fmt_money(result['reward'])}")
+    await send_html(
+        update,
+        f"🏆 <b>Итог:</b> ⏱ {result['time_s']:.2f}s | ⚠️ {result['incidents']} | 💰 {fmt_money(result['reward'])}"
+    )
 
 async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query

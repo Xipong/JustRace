@@ -213,9 +213,9 @@ def set_current_track(p: Player, track_id: str) -> str:
     return f"🏁 Текущая трасса: {tracks[track_id]} (`{track_id}`)"
 
 def payout_for_race(car_tier: str, laps: int, incidents: int, clean: bool) -> int:
+    """Compute race payout without penalizing incidents."""
     base = RACE_BASE_REWARD.get(car_tier, 300) * max(1, laps)
     mult = 1.0 + (CLEAN_BONUS if clean else 0.0)
-    mult *= max(0.5, 1.0 - PENALTY_TAX * max(0, incidents))
     return max(0, int(base * mult))
 
 def reward_player(p: Player, amount: int) -> None:

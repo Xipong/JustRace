@@ -1,12 +1,15 @@
+import time
 import uuid
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict, List
 from threading import Barrier
+from typing import Dict, List, Optional, Callable
 
 from game_api import run_player_race
 
 # Простые лобби в памяти процесса
 LOBBIES: Dict[str, Dict] = {}
+MAX_PLAYERS = 8
 
 
 def reset_lobbies() -> None:
@@ -25,12 +28,30 @@ def create_lobby(track_id: str) -> str:
     return lid
 
 
-def join_lobby(lobby_id: str, user_id: str, name: str) -> None:
+def join_lobby(
+    lobby_id: str,
+    user_id: str,
+    name: str,
+    *,
+    chat_id: str,
+    mass: float = 0.0,
+    power: float = 0.0,
+) -> None:
     lobby = LOBBIES.get(lobby_id)
     if not lobby:
         raise RuntimeError("Лобби не найдено")
+    if len(lobby["players"]) >= MAX_PLAYERS:
+        raise RuntimeError("Лобби заполнено (макс 8)")
     if user_id not in [p["user_id"] for p in lobby["players"]]:
-        lobby["players"].append({"user_id": user_id, "name": name})
+        lobby["players"].append(
+            {
+                "user_id": user_id,
+                "name": name,
+                "chat_id": chat_id,
+                "mass": mass,
+                "power": power,
+            }
+        )
 
 
 def leave_lobby(lobby_id: str, user_id: str) -> None:
@@ -42,7 +63,42 @@ def leave_lobby(lobby_id: str, user_id: str) -> None:
         del LOBBIES[lobby_id]
 
 
-def start_lobby_race(lobby_id: str, laps: int = 1) -> List[Dict]:
+_last_tick: Dict[str, float] = defaultdict(float)
+
+
+def _log_event(evt: Dict) -> None:
+    uid = evt.get("user_id", "?")
+    name = evt.get("name", "?")
+    etype = evt.get("type")
+    if etype == "penalty":
+        print(
+            f"🚫 {name} penalty {evt.get('severity', '')}+{evt['delta_s']:.2f}s on {evt['segment']}"
+        )
+    elif etype == "segment_tick":
+        now = time.time()
+        if now - _last_tick[uid] >= 20.0:
+            _last_tick[uid] = now
+            print(
+                "\n".join(
+                    [
+                        f"JustRace: {name}",
+                        f"🏎 Круг {evt['lap']}/{evt['laps']}",
+                        f"📏 Участок: {evt['segment']} (ID: {evt['segment_id']})",
+                        f"🚀 Скорость: {evt['speed']:.1f} км/ч",
+                        f"⏱ Время: {evt['time_s']:.1f} сек",
+                        f"🏁 Пройдено: {evt['distance']:.0f}/{evt['segment_length']:.0f}м",
+                    ]
+                )
+            )
+    elif etype == "segment_change":
+        print(
+            f"➡️ {name}: Новый участок {evt['segment']} 🚀{evt['speed']:.1f} км/ч ⏱{evt['time_s']:.1f} сек"
+        )
+
+
+def start_lobby_race(
+    lobby_id: str, laps: int = 1, *, on_event: Optional[Callable[[Dict], None]] = None
+) -> List[Dict]:
     lobby = LOBBIES.get(lobby_id)
     if not lobby:
         raise RuntimeError("Лобби не найдено")
@@ -54,8 +110,19 @@ def start_lobby_race(lobby_id: str, laps: int = 1) -> List[Dict]:
     barrier = Barrier(len(players))
 
     def _runner(p: Dict) -> Dict:
+        def wrapper(evt: Dict) -> None:
+            evt = dict(evt)
+            evt["user_id"] = p["user_id"]
+            evt["name"] = p["name"]
+            if on_event:
+                on_event(evt)
+            else:
+                _log_event(evt)
+
         barrier.wait()
-        return run_player_race(p["user_id"], p["name"], track_id=track_id, laps=laps)
+        return run_player_race(
+            p["user_id"], p["name"], track_id=track_id, laps=laps, on_event=wrapper
+        )
 
     with ThreadPoolExecutor() as pool:
         fut_map = {pool.submit(_runner, p): p for p in players}

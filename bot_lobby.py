@@ -1,8 +1,11 @@
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
+from typing import Dict, List
 
 from economy_v1 import load_player
-from lobby import create_lobby, join_lobby, leave_lobby, start_lobby_race
+from game_api import load_car_by_id
+from lobby import create_lobby, join_lobby, leave_lobby, start_lobby_race, LOBBIES
 from bot import esc, _uid, _uname, send_html
 
 
@@ -28,7 +31,20 @@ async def lobby_join_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_html(update, "Использование: <code>/lobby_join &lt;id&gt;</code>")
         return
     try:
-        join_lobby(context.args[0], uid, name)
+        p = load_player(uid, name)
+        if not p.current_car:
+            await send_html(update, "Сначала выбери машину: /garage")
+            return
+        car = load_car_by_id(p.current_car)
+        chat_id = str(update.effective_chat.id)
+        join_lobby(
+            context.args[0],
+            uid,
+            name,
+            chat_id=chat_id,
+            mass=car.mass,
+            power=car.power,
+        )
         await send_html(update, f"Присоединился к лобби {esc(context.args[0])}")
     except Exception as e:
         await send_html(update, f"❌ {esc(e)}")
@@ -48,19 +64,48 @@ async def lobby_start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_html(update, "Использование: <code>/lobby_start &lt;id&gt;</code>")
         return
     lid = context.args[0]
+    lobby_info = LOBBIES.get(lid, {})
+    player_stats = lobby_info.get("players", [])
+
+    groups: Dict[str, List[Dict]] = {}
+    for p in player_stats:
+        groups.setdefault(p.get("chat_id", p["user_id"]), []).append(p)
+
+    def tag(p: Dict) -> str:
+        return f'<a href="tg://user?id={p["user_id"]}">{esc(p["name"])}</a>'
+
+    for chat_id, players in groups.items():
+        tags = " ".join(tag(p) for p in players)
+        await context.bot.send_message(
+            int(chat_id), f"🏁 Гонка началась: {tags}", parse_mode=ParseMode.HTML
+        )
+
     try:
         results = start_lobby_race(lid)
     except Exception as e:
         await send_html(update, f"❌ {esc(e)}")
         return
+
+    finished = [r for r in results if "result" in r]
+    finished.sort(key=lambda r: r["result"]["time_s"])
+    winner_time = finished[0]["result"]["time_s"] if finished else 0.0
+
     lines = [f"🏁 Результаты лобби {esc(lid)}:"]
+    for pos, r in enumerate(finished, 1):
+        info = next((p for p in player_stats if p["user_id"] == r["user_id"]), {})
+        delta = r["result"]["time_s"] - winner_time
+        diff = "лидер" if delta <= 0.0001 else f"+{delta:.2f}s"
+        lines.append(
+            f"{pos}. {esc(r['name'])}: {r['result']['time_s']:.2f}s ({diff}) ⚖️{info.get('mass',0):.0f}кг 🐎{info.get('power',0):.0f}"
+        )
+
     for r in results:
         if "error" in r:
             lines.append(f"{esc(r['name'])}: ❌ {esc(r['error'])}")
-        else:
-            res = r["result"]
-            lines.append(f"{esc(r['name'])}: {res['time_s']:.2f}s, инц. {res['incidents']}")
-    await send_html(update, "\n".join(lines))
+
+    message = "\n".join(lines)
+    for chat_id in groups.keys():
+        await context.bot.send_message(int(chat_id), message, parse_mode=ParseMode.HTML)
 
 
 def setup(app: Application) -> None:
