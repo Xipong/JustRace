@@ -1,6 +1,7 @@
 import os, json
 from typing import Optional, Dict, Callable
 from pathlib import Path
+from datetime import date
 from .models_v2 import Car, Track, TrackSegment, DriverProfile, run_race
 from .economy_v1 import (
     load_player,
@@ -18,6 +19,7 @@ from .economy_v1 import (
 )
 
 DATA_DIR = Path(os.getenv("GAME_DATA_DIR", "./data"))
+MAX_RACES_PER_DAY = 5
 
 def load_track(path: Path) -> Track:
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -62,6 +64,7 @@ def get_upgrade_status(user_id: str, name: str, car_id: str) -> str:
     p = load_player(user_id, name)
     return upgrade_status(p, car_id)
 
+
 def run_player_race(user_id: str, name: str, track_id: Optional[str]=None, laps: int=1,
                     on_event: Optional[Callable[[Dict], None]] = None) -> Dict:
     p = load_player(user_id, name)
@@ -86,6 +89,8 @@ def run_player_race(user_id: str, name: str, track_id: Optional[str]=None, laps:
     if not tpath.exists():
         raise RuntimeError(f"Файл трассы не найден: {tpath}")
     track = load_track(tpath)
+
+    _check_daily_limit(p)
 
     summary, gains = run_race(car, track, laps=laps, driver=d, on_event=on_event)
     reward = payout_for_race(tier, laps, summary["incidents"], clean=(summary["incidents"] == 0))
