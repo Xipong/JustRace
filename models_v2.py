@@ -221,6 +221,7 @@ class RaceEngine:
                 "type": "segment_tick",
                 "segment": seg_before.name,
                 "time_s": self.state.total_time,
+                "speed": self.state.speed * 3.6,
             })
             self._last_seg_evt_time = self.state.total_time
         if self.state.segment_distance >= seg_before.length:
@@ -247,6 +248,7 @@ class RaceEngine:
                     "type": "segment_change",
                     "segment": self.current_segment.name,
                     "time_s": self.state.total_time,
+                    "speed": self.state.speed * 3.6,
                 })
             # новая секция – сбрасываем таймер сегмента
             self._last_seg_evt_time = self.state.total_time

@@ -1,4 +1,4 @@
-import os, asyncio, html, logging
+import os, asyncio, html, logging, time
 from dataclasses import asdict
 from typing import Dict
 
@@ -11,7 +11,13 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.request import HTTPXRequest
 
-
+from bot_kb import (
+    fmt_money,
+    main_menu_kb,
+    garage_kb,
+    catalog_kb,
+    tracks_kb,
+)
 from economy_v1 import (
     load_player,
     list_catalog,
@@ -20,16 +26,14 @@ from economy_v1 import (
     list_tracks,
     set_current_track,
 )
-from game_api import run_player_race
+from game_api import run_player_race, get_upgrade_status
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("racing-bot")
 
+
 def esc(s: object) -> str:
     return html.escape(str(s))
-
-def fmt_money(v: int) -> str:
-    return f"{v:,}".replace(",", " ")
 
 def _uid(update: Update) -> str:
     return str(update.effective_user.id)
@@ -38,21 +42,20 @@ def _uname(update: Update) -> str:
     u = update.effective_user
     return (u.full_name or u.username or str(u.id))
 
-def catalog_kb(cat: Dict) -> InlineKeyboardMarkup:
-    rows = []
-    cars = sorted(cat["cars"].items(), key=lambda kv: kv[1]["price"])[:12]
-    for cid, item in cars:
-        label = f"{item['name']} — {fmt_money(item['price'])}"
-        rows.append([InlineKeyboardButton(label, callback_data=f"buy:{cid}")])
-    rows.append([InlineKeyboardButton("Обновить", callback_data="nav:catalog")])
-    return InlineKeyboardMarkup(rows)
-
-def tracks_kb() -> InlineKeyboardMarkup:
-    rows = []
-    for tid, name in list(list_tracks().items())[:12]:
-        rows.append([InlineKeyboardButton(f"{name}", callback_data=f"settrack:{tid}")])
-    rows.append([InlineKeyboardButton("Обновить", callback_data="nav:tracks")])
-    return InlineKeyboardMarkup(rows)
+def help_text() -> str:
+    return (
+        "Привет! Доступные команды:\n"
+        "<code>/catalog</code> — каталог машин\n"
+        "<code>/buy &lt;id&gt;</code> — купить\n"
+        "<code>/garage</code> — мой гараж\n"
+        "<code>/setcar &lt;id&gt;</code> — выбрать машину\n"
+        "<code>/driver</code> — навыки пилота\n"
+        "<code>/track</code> — выбрать трассу\n"
+        "<code>/settrack &lt;id&gt;</code> — задать трассу\n"
+        "<code>/race</code> — начать гонку\n"
+        "<code>/upgrades</code> — апгрейды машины\n"
+        "<code>/lobby_create</code> — создать лобби"
+    )
 
 async def send_html(update: Update, text: str):
     # В HTML-режиме переносы строк — это \n, не <br/>.
@@ -63,18 +66,14 @@ async def send_html(update: Update, text: str):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
     load_player(uid, name)
-    msg = (
-        "Привет! Доступные команды:\n"
-        "<code>/catalog</code> — каталог машин\n"
-        "<code>/buy &lt;id&gt;</code> — купить\n"
-        "<code>/garage</code> — мой гараж\n"
-        "<code>/setcar &lt;id&gt;</code> — выбрать машину\n"
-        "<code>/driver</code> — навыки пилота\n"
-        "<code>/track</code> — выбрать трассу\n"
-        "<code>/settrack &lt;id&gt;</code> — задать трассу\n"
-        "<code>/race</code> — начать гонку"
+    await update.effective_chat.send_message(
+        help_text(), parse_mode=ParseMode.HTML, reply_markup=main_menu_kb()
     )
-    await send_html(update, msg)
+
+async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.effective_chat.send_message(
+        help_text(), parse_mode=ParseMode.HTML, reply_markup=main_menu_kb()
+    )
 async def catalog(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cat = list_catalog()
     if not cat["cars"]:
@@ -108,8 +107,14 @@ async def garage(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Каталог", callback_data="nav:catalog")]])
         )
         return
-    lines = [f"<b>Баланс:</b> {fmt_money(p.balance)}", "<b>Гараж:</b>"] + [f"- <code>{esc(cid)}</code>" for cid in p.garage]
-    await send_html(update, "\n".join(lines))
+    cat = list_catalog()
+    lines = [f"<b>Баланс:</b> {fmt_money(p.balance)}", "<b>Гараж:</b>"]
+    for cid in p.garage:
+        name = cat["cars"].get(cid, {}).get("name", cid)
+        lines.append(f"- <code>{esc(cid)}</code> — {esc(name)}")
+    await update.effective_chat.send_message(
+        "\n".join(lines), parse_mode=ParseMode.HTML, reply_markup=garage_kb(p)
+    )
 
 async def setcar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
@@ -145,30 +150,41 @@ async def settrack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     await send_html(update, esc(set_current_track(p, context.args[0])))
 
+async def upgrades_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = _uid(update); name = _uname(update)
+    p = load_player(uid, name)
+    car_id = context.args[0] if context.args else p.current_car
+    if not car_id:
+        await send_html(update, "Укажи машину: <code>/upgrades &lt;car_id&gt;</code>")
+        return
+    msg = get_upgrade_status(uid, name, car_id)
+    await send_html(update, esc(msg))
+
 async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
     loop = asyncio.get_running_loop()
-    last_sent = -20.0
 
     def on_evt(evt: Dict):
-        nonlocal last_sent
         etype = evt.get("type")
         msg = None
         if etype == "penalty":
             sev = esc(evt.get("severity", "minor"))
             msg = f"⚠️ Пенальти ({sev}): +{evt['delta_s']:.2f}s на {esc(evt['segment'])} (нагрузка {evt['load']:.2f})"
-        elif etype in ("segment_change", "segment_tick"):
-            msg = f"➡️ {esc(evt['segment'])}"
+        elif etype == "segment_tick":
+            msg = f"⏱ {evt['time_s']:.2f}s, {evt['speed']:.1f} км/ч"
+            asyncio.run_coroutine_threadsafe(send_html(update, msg), loop)
+            time.sleep(20.0)
+            return
+        elif etype == "segment_change":
+            msg = f"➡️ {esc(evt['segment'])}: {evt['time_s']:.2f}s, {evt['speed']:.1f} км/ч"
         elif etype == "lap_complete":
             msg = f"🏁 Круг {evt['lap']} — {evt['time_s']:.2f}s"
         elif etype == "race_complete":
             msg = f"🏁 Гонка — {evt['time_s']:.2f}s, инцидентов: {evt.get('incidents',0)}"
         elif etype == "skill_up":
             msg = f"📈 {esc(evt['skill'])} +{evt['delta']:.2f} → {evt['new']:.1f}"
-        t = evt.get("time_s", last_sent)
-        if msg and (t - last_sent) >= 20.0:
+        if msg:
             asyncio.run_coroutine_threadsafe(send_html(update, msg), loop)
-            last_sent = t
 
     try:
         result = await loop.run_in_executor(None, lambda: run_player_race(uid, name, laps=1, on_event=on_evt))
@@ -199,6 +215,17 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer()
         p = load_player(uid, name)
         await send_html(update, esc(set_current_track(p, data.split(":",1)[1])))
+    elif data == "nav:garage":
+        await query.answer()
+        await garage(update, context)
+    elif data == "nav:help":
+        await query.answer()
+        await help_cmd(update, context)
+    elif data.startswith("upgrades:"):
+        await query.answer()
+        car_id = data.split(":",1)[1]
+        msg = get_upgrade_status(uid, name, car_id)
+        await send_html(update, esc(msg))
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.exception("Unhandled error", exc_info=context.error)
@@ -226,6 +253,8 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("driver", driver))
     app.add_handler(CommandHandler("track", track_cmd))
     app.add_handler(CommandHandler("settrack", settrack_cmd))
+    app.add_handler(CommandHandler("upgrades", upgrades_cmd))
+    app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("race", race))
     app.add_handler(CallbackQueryHandler(on_callback))
     import bot_lobby
