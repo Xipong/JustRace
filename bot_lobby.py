@@ -13,6 +13,7 @@ from lobby import (
     LOBBIES,
     find_user_lobby,
 )
+from bot import _uid, _uname, send_html, esc
 
 async def lobby_create_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update)
@@ -71,8 +72,9 @@ async def lobby_start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_html(update, "Использование: <code>/lobby_start &lt;id&gt;</code>")
         return
     lid = context.args[0]
-    lobby_info = LOBBIES.get(lid, {}
-    if uid not in [p["user_id"] for p in lobby_info.get("players", [])]:
+    lobby_info = LOBBIES.get(lid, {})
+    player_stats = lobby_info.get("players", [])
+    if uid not in [p["user_id"] for p in player_stats]:
         await send_html(update, "Сначала присоединись к лобби")
         return
 
