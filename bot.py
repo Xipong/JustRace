@@ -17,6 +17,7 @@ from bot_kb import (
     garage_kb,
     catalog_kb,
     tracks_kb,
+    upgrade_parts_kb,
 )
 from economy_v1 import (
     load_player,
@@ -26,7 +27,7 @@ from economy_v1 import (
     list_tracks,
     set_current_track,
 )
-from game_api import run_player_race, get_upgrade_status
+from game_api import run_player_race, get_upgrade_status, list_available_upgrades, buy_car_upgrade
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("racing-bot")
@@ -57,9 +58,11 @@ def help_text() -> str:
         "<code>/lobby_create</code> — создать лобби"
     )
 
-async def send_html(update: Update, text: str):
+async def send_html(update: Update, text: str, reply_markup=None):
     # В HTML-режиме переносы строк — это \n, не <br/>.
-    await update.effective_chat.send_message(text, parse_mode=ParseMode.HTML)
+    await update.effective_chat.send_message(
+        text, parse_mode=ParseMode.HTML, reply_markup=reply_markup
+    )
 
 # ---- Handlers ----
 
@@ -157,8 +160,19 @@ async def upgrades_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not car_id:
         await send_html(update, "Укажи машину: <code>/upgrades &lt;car_id&gt;</code>")
         return
-    msg = get_upgrade_status(uid, name, car_id)
-    await send_html(update, esc(msg))
+    await show_upgrades_menu(update, uid, name, car_id)
+
+
+async def show_upgrades_menu(update, uid, name, car_id):
+    status = get_upgrade_status(uid, name, car_id)
+    parts = list_available_upgrades(uid, name, car_id)
+    if parts:
+        desc = "\n".join(f"{p['name']} — {p['desc']}" for p in parts)
+        status += "\nДоступно:\n" + desc
+    else:
+        status += "\nВсе улучшения установлены."
+    kb = upgrade_parts_kb(car_id, parts)
+    await send_html(update, esc(status), reply_markup=kb)
 
 async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
@@ -169,20 +183,38 @@ async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = None
         if etype == "penalty":
             sev = esc(evt.get("severity", "minor"))
-            msg = f"⚠️ Пенальти ({sev}): +{evt['delta_s']:.2f}s на {esc(evt['segment'])} (нагрузка {evt['load']:.2f})"
+            msg = (
+                f"🚫 <b>Пенальти ({sev})</b>\n"
+                f"⏱ <i>+{evt['delta_s']:.2f}s</i> на {esc(evt['segment'])}\n"
+                f"📉 Нагрузка: {evt['load']:.2f}"
+            )
         elif etype == "segment_tick":
-            msg = f"⏱ {evt['time_s']:.2f}s, {evt['speed']:.1f} км/ч"
+            msg = (
+                f"🏎️ <b>Круг {evt['lap']}/{evt['laps']}</b>\n"
+                f"📍 <b>{esc(evt['segment'])}</b> <i>(ID {evt['segment_id']})</i>\n"
+                f"⚡️ <code>{evt['speed']:.1f} км/ч</code>\n"
+                f"⏰ <code>{evt['time_s']:.1f} сек</code>\n"
+                f"📊 <code>{evt['distance']:.0f}/{evt['segment_length']:.0f} м</code>"
+            )
             asyncio.run_coroutine_threadsafe(send_html(update, msg), loop)
             time.sleep(20.0)
             return
         elif etype == "segment_change":
-            msg = f"➡️ {esc(evt['segment'])}: {evt['time_s']:.2f}s, {evt['speed']:.1f} км/ч"
+            msg = (
+                f"🔁 <b>Новый участок: {esc(evt['segment'])}</b>\n"
+                f"⚡️ <code>{evt['speed']:.1f} км/ч</code>\n"
+                f"⏰ <code>{evt['time_s']:.1f} сек</code>"
+            )
         elif etype == "lap_complete":
-            msg = f"🏁 Круг {evt['lap']} — {evt['time_s']:.2f}s"
+            msg = f"🏁 <b>Круг {evt['lap']} завершён</b> — <code>{evt['time_s']:.2f}s</code>"
         elif etype == "race_complete":
-            msg = f"🏁 Гонка — {evt['time_s']:.2f}s, инцидентов: {evt.get('incidents',0)}"
+            msg = (
+                f"🏁 <b>Гонка завершена!</b>\n"
+                f"⏱ <code>{evt['time_s']:.2f}s</code>\n"
+                f"⚠️ Инцидентов: <code>{evt.get('incidents',0)}</code>"
+            )
         elif etype == "skill_up":
-            msg = f"📈 {esc(evt['skill'])} +{evt['delta']:.2f} → {evt['new']:.1f}"
+            msg = f"📈 <b>{esc(evt['skill'])}</b> +{evt['delta']:.2f} → {evt['new']:.1f}"
         if msg:
             asyncio.run_coroutine_threadsafe(send_html(update, msg), loop)
 
@@ -193,7 +225,10 @@ async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_html(update, f"❌ {esc(e)}")
         return
 
-    await send_html(update, f"<b>Итог:</b> время {result['time_s']:.2f}s, инцидентов {result['incidents']}, награда {fmt_money(result['reward'])}")
+    await send_html(
+        update,
+        f"🏆 <b>Итог:</b> ⏱ {result['time_s']:.2f}s | ⚠️ {result['incidents']} | 💰 {fmt_money(result['reward'])}"
+    )
 
 async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -224,8 +259,13 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data.startswith("upgrades:"):
         await query.answer()
         car_id = data.split(":",1)[1]
-        msg = get_upgrade_status(uid, name, car_id)
+        await show_upgrades_menu(update, uid, name, car_id)
+    elif data.startswith("buyupg:"):
+        await query.answer()
+        _, car_id, part_id = data.split(":", 2)
+        msg = buy_car_upgrade(uid, name, car_id, part_id)
         await send_html(update, esc(msg))
+        await show_upgrades_menu(update, uid, name, car_id)
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.exception("Unhandled error", exc_info=context.error)

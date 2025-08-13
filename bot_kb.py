@@ -52,3 +52,12 @@ def tracks_kb() -> InlineKeyboardMarkup:
         rows.append([InlineKeyboardButton(f"{name}", callback_data=f"settrack:{tid}")])
     rows.append([InlineKeyboardButton("Обновить", callback_data="nav:tracks")])
     return InlineKeyboardMarkup(rows)
+
+
+def upgrade_parts_kb(car_id: str, parts: list) -> InlineKeyboardMarkup:
+    """Keyboard with available upgrade parts for the car."""
+    rows = []
+    for part in parts:
+        rows.append([InlineKeyboardButton(part["name"], callback_data=f"buyupg:{car_id}:{part['id']}")])
+    rows.append([InlineKeyboardButton("Назад", callback_data="nav:garage")])
+    return InlineKeyboardMarkup(rows)
