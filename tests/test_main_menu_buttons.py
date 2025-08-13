@@ -13,4 +13,4 @@ def test_main_menu_has_buttons():
     assert "Трассы" in labels
     assert "Водитель" in labels
     assert "Лобби" in labels
-    assert "Промокод" in labels
+    assert "Промокод" not in labels

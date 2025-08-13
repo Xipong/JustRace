@@ -23,9 +23,6 @@ def _nav_menu_rows() -> List[List[InlineKeyboardButton]]:
         [
             InlineKeyboardButton("Водитель", callback_data="nav:driver"),
             InlineKeyboardButton("Лобби", callback_data="nav:lobby"),
-            InlineKeyboardButton("Промокод", callback_data="nav:bonus"),
-        ],
-    ]
 
 
 def _with_nav(rows: List[List[InlineKeyboardButton]]) -> InlineKeyboardMarkup:

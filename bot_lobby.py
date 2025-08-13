@@ -1,7 +1,10 @@
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
-from typing import Dict, List
+from typing import Dict, List, Callable
+import asyncio
+import time
+from collections import defaultdict
 
 from economy_v1 import load_player
 from game_api import load_car_by_id
@@ -109,17 +112,59 @@ async def lobby_start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for p in player_stats:
         groups.setdefault(p.get("chat_id", p["user_id"]), []).append(p)
 
+    def _to_chat_id(x):
+        try:
+            return int(x)
+        except (TypeError, ValueError):
+            return x
+
     def tag(p: Dict) -> str:
         return f'<a href="tg://user?id={p["user_id"]}">{esc(p["name"])}</a>'
 
-    for chat_id, players in groups.items():
-        tags = " ".join(tag(p) for p in players)
+    tags_all = " ".join(tag(p) for p in player_stats)
+    for p in player_stats:
         await context.bot.send_message(
-            int(chat_id), f"🏁 Гонка началась: {tags}", parse_mode=ParseMode.HTML
+            _to_chat_id(p["user_id"]),
+            f"🏁 Гонка началась: {tags_all}",
+            parse_mode=ParseMode.HTML,
         )
 
+    loop = asyncio.get_running_loop()
+    prev: Dict[str, float] = defaultdict(float)
+
+    def on_evt(evt: Dict) -> None:
+        uid = evt.get("user_id")
+        etype = evt.get("type")
+        msg = None
+        if etype == "segment_change":
+            msg = (
+                f"➡️ {esc(evt['name'])}: Новый участок {esc(evt['segment'])} "
+                f"🚀{evt['speed']:.1f} км/ч ⏱{evt['time_s']:.1f} сек"
+            )
+        elif etype == "penalty":
+            msg = (
+                f"🚫 {esc(evt['name'])} penalty {esc(evt.get('severity','minor'))}"
+                f"+{evt['delta_s']:.2f}s on {esc(evt['segment'])}"
+            )
+        elif etype == "lap_complete":
+            msg = (
+                f"🏁 {esc(evt['name'])} завершил круг {evt['lap']} "
+                f"за {evt['time_s']:.2f}s"
+            )
+        elif etype == "race_complete":
+            msg = f"🏁 {esc(evt['name'])} финишировал за {evt['time_s']:.2f}s"
+        if msg and uid:
+            asyncio.run_coroutine_threadsafe(
+                context.bot.send_message(_to_chat_id(uid), msg, parse_mode=ParseMode.HTML),
+                loop,
+            )
+        if uid is not None and "time_s" in evt:
+            delay = max(0.0, evt["time_s"] - prev[uid])
+            prev[uid] = evt["time_s"]
+            time.sleep(min(delay, 5.0))
+
     try:
-        results = start_lobby_race(lid)
+        results = await loop.run_in_executor(None, lambda: start_lobby_race(lid, on_event=on_evt))
     except Exception as e:
         await send_html(update, f"❌ {esc(e)}")
         return
@@ -143,7 +188,7 @@ async def lobby_start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message = "\n".join(lines)
     for chat_id in groups.keys():
-        await context.bot.send_message(int(chat_id), message, parse_mode=ParseMode.HTML)
+        await context.bot.send_message(_to_chat_id(chat_id), message, parse_mode=ParseMode.HTML)
 
 
 def setup(app: Application) -> None:

@@ -178,8 +178,9 @@ async def lobby_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         lines = [
             "Ты не в лобби.",
-            "Создай: /lobby_create <track_id>",
-            "Вступи: /lobby_join <id>",
+            "Создай: <code>/lobby_create &lt;track_id&gt;</code>",
+            "Вступи: <code>/lobby_join &lt;id&gt;</code>",
+
         ]
         kb = lobby_main_kb()
     await send_html(update, "\n".join(lines), reply_markup=kb)
@@ -289,39 +290,34 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if not query or not query.data:
         return
+    await query.answer()
+    try:
+        await query.edit_message_reply_markup(reply_markup=None)
+    except Exception:
+        pass
     data = query.data
     uid = _uid(update); name = _uname(update)
     if data == "nav:catalog":
-        await query.answer()
         await catalog(update, context)
     elif data.startswith("buy:"):
-        await query.answer()
         p = load_player(uid, name)
         await send_html(update, esc(buy_car(p, data.split(":",1)[1])))
     elif data == "nav:tracks":
-        await query.answer()
         await track_cmd(update, context)
     elif data.startswith("settrack:"):
-        await query.answer()
         p = load_player(uid, name)
         await send_html(update, esc(set_current_track(p, data.split(":",1)[1])))
     elif data == "nav:garage":
-        await query.answer()
         await garage(update, context)
     elif data == "nav:help":
-        await query.answer()
         await help_cmd(update, context)
     elif data == "nav:driver":
-        await query.answer()
         await driver(update, context)
     elif data == "nav:bonus":
-        await query.answer()
         await send_html(update, "Использование: <code>/bonus &lt;код&gt;</code>")
     elif data == "nav:lobby":
-        await query.answer()
         await lobby_menu(update, context)
     elif data == "lobby_create":
-        await query.answer()
         p = load_player(uid, name)
         if not p.current_track or not p.current_car:
             await send_html(update, "Сначала выбери машину и трассу")
@@ -340,18 +336,16 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             from bot_lobby import broadcast_lobby_state
             await broadcast_lobby_state(lid, getattr(context, "bot", None))
     elif data.startswith("lobby_leave:"):
-        await query.answer()
+
         lid = data.split(":",1)[1]
         leave_lobby(lid, uid)
         await send_html(update, "Лобби покинуто")
         from bot_lobby import broadcast_lobby_state
         await broadcast_lobby_state(lid, getattr(context, "bot", None))
     elif data.startswith("upgrades:"):
-        await query.answer()
         car_id = data.split(":",1)[1]
         await show_upgrades_menu(update, uid, name, car_id)
     elif data.startswith("buyupg:"):
-        await query.answer()
         _, car_id, part_id = data.split(":", 2)
         msg = buy_car_upgrade(uid, name, car_id, part_id)
         await send_html(update, esc(msg))
