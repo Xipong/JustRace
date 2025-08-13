@@ -17,6 +17,7 @@ from economy_v1 import (
     upgrade_status,
     list_upgrade_parts,
 )
+from premium import is_premium
 
 DATA_DIR = Path(os.getenv("GAME_DATA_DIR", "./data"))
 MAX_RACES_PER_DAY = 5
@@ -49,6 +50,8 @@ def save_driver(p, d: DriverProfile):
 
 
 def _check_daily_limit(p):
+    if is_premium(p.user_id):
+        return
     today = date.today().isoformat()
     if p.last_race_day != today:
         p.last_race_day = today
