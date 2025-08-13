@@ -85,7 +85,9 @@ def test_group_start_messages(monkeypatch):
             self.bot = FakeBot()
 
     class FakeUpdate:
+
         effective_user = type("U", (), {"id": "u1", "full_name": "A"})()
+
 
     asyncio.run(bot_lobby.lobby_start_cmd(FakeUpdate(), FakeContext()))
 
@@ -94,7 +96,6 @@ def test_group_start_messages(monkeypatch):
     assert "tg://user?id=u1" in sent[0][1]
     assert "tg://user?id=u2" in sent[0][1]
     assert sent[1][0] == 10
-
 
 def test_join_twice_forbidden():
     lobby.reset_lobbies()

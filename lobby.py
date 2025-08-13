@@ -48,9 +48,11 @@ def join_lobby(
     lobby = LOBBIES.get(lobby_id)
     if not lobby:
         raise RuntimeError("Лобби не найдено")
+
     other = find_user_lobby(user_id)
     if other and other != lobby_id:
         raise RuntimeError(f"Сначала выйди из лобби {other}")
+
     if len(lobby["players"]) >= MAX_PLAYERS:
         raise RuntimeError("Лобби заполнено (макс 8)")
     if user_id not in [p["user_id"] for p in lobby["players"]]:
