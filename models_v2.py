@@ -159,11 +159,16 @@ class RaceEngine:
         return False
 
     def _step_straight(self, seg: TrackSegment, dt: float):
-        a_long_max = (self.car.power_watts / max(self.state.speed, 1.0)) / self.car.mass
+        v = max(self.state.speed, 1.0)
+        drag_power = 0.5 * self.car.cd * self.rho * self.car.area * v ** 3
+        a_power = (self.car.power_watts - drag_power) / (self.car.mass * v)
+        a_tire = 9.81 * self.car.tire_grip
+        a_long_max = min(a_power, a_tire)
         if self.use_rr:
             a_long_max -= 9.81 * self.c_rr
-        lam = max(0.1, seg.entry_complexity * 0.05)
-        a_eff = min(a_long_max * seg.accel_coef * (1.0 - 0.04 * lam), a_long_max)
+        lam = 0.5 * (seg.entry_complexity + seg.exit_complexity)
+        lam_factor = max(0.08, 1.0 - 0.11 * lam)
+        a_eff = min(a_long_max * seg.accel_coef * lam_factor, a_long_max)
         self.state.speed = max(self.state.speed + a_eff * dt, 0.1)
         self.state.segment_distance += self.state.speed * dt
         self.state.total_time += dt
@@ -171,9 +176,10 @@ class RaceEngine:
     def _step_corner(self, seg: TrackSegment, dt: float):
         v_in = max(self.state.speed, 0.1)
         lam = max(0.1, 0.5 * (seg.entry_complexity + seg.exit_complexity))
-        v_target = self.car.vmax_power_limited * (self.car.tire_grip / 1.0) * (1.0 - 0.03 * lam)
-        v_target = max(8.0, min(v_target, 120.0))
-        a_long_max = 0.8 * 9.81 * (self.car.tire_grip - 0.1) / 3.0
+        v_factor = max(0.1, 1.0 - 0.10 * lam)
+        v_target = self.car.vmax_power_limited * v_factor
+        v_target = max(12.0, min(v_target, 120.0))
+        a_long_max = 0.8 * 9.81 * self.car.tire_grip
         a_eff = (v_target - v_in) / max(dt, 1e-3)
         a_eff = max(min(a_eff, a_long_max), -a_long_max)
         if self.state.speed > v_target:
