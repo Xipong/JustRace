@@ -17,6 +17,7 @@ from bot_kb import (
     garage_kb,
     catalog_kb,
     tracks_kb,
+    upgrade_parts_kb,
 )
 from economy_v1 import (
     load_player,
@@ -26,7 +27,8 @@ from economy_v1 import (
     list_tracks,
     set_current_track,
 )
-from game_api import run_player_race, get_upgrade_status
+from game_api import run_player_race, get_upgrade_status, list_available_upgrades, buy_car_upgrade
+from lobby import find_user_lobby
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("racing-bot")
@@ -57,9 +59,11 @@ def help_text() -> str:
         "<code>/lobby_create</code> — создать лобби"
     )
 
-async def send_html(update: Update, text: str):
+async def send_html(update: Update, text: str, reply_markup=None):
     # В HTML-режиме переносы строк — это \n, не <br/>.
-    await update.effective_chat.send_message(text, parse_mode=ParseMode.HTML)
+    await update.effective_chat.send_message(
+        text, parse_mode=ParseMode.HTML, reply_markup=reply_markup
+    )
 
 # ---- Handlers ----
 
@@ -157,11 +161,26 @@ async def upgrades_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not car_id:
         await send_html(update, "Укажи машину: <code>/upgrades &lt;car_id&gt;</code>")
         return
-    msg = get_upgrade_status(uid, name, car_id)
-    await send_html(update, esc(msg))
+    await show_upgrades_menu(update, uid, name, car_id)
+
+
+async def show_upgrades_menu(update, uid, name, car_id):
+    status = get_upgrade_status(uid, name, car_id)
+    parts = list_available_upgrades(uid, name, car_id)
+    if parts:
+        desc = "\n".join(f"{p['name']} — {p['desc']}" for p in parts)
+        status += "\nДоступно:\n" + desc
+    else:
+        status += "\nВсе улучшения установлены."
+    kb = upgrade_parts_kb(car_id, parts)
+    await send_html(update, esc(status), reply_markup=kb)
 
 async def race(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
+    lid = find_user_lobby(uid)
+    if lid:
+        await send_html(update, f"Ты в лобби {esc(lid)}. Выйди: /lobby_leave {esc(lid)}")
+        return
     loop = asyncio.get_running_loop()
 
     def on_evt(evt: Dict):
@@ -245,8 +264,13 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data.startswith("upgrades:"):
         await query.answer()
         car_id = data.split(":",1)[1]
-        msg = get_upgrade_status(uid, name, car_id)
+        await show_upgrades_menu(update, uid, name, car_id)
+    elif data.startswith("buyupg:"):
+        await query.answer()
+        _, car_id, part_id = data.split(":", 2)
+        msg = buy_car_upgrade(uid, name, car_id, part_id)
         await send_html(update, esc(msg))
+        await show_upgrades_menu(update, uid, name, car_id)
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.exception("Unhandled error", exc_info=context.error)

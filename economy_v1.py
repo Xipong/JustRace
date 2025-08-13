@@ -45,6 +45,21 @@ UPGRADE_PARTS = {
     "aero": "Аэродинамика",
     "weight": "Облегчение",
 }
+# descriptions for upgrade parts
+UPGRADE_DESCRIPTIONS = {
+    "engine": "Повышает базовую мощность мотора.",
+    "turbo": "Устанавливает турбонаддув для прироста тяги.",
+    "exhaust": "Уменьшает сопротивление выпускной системы.",
+    "intake": "Улучшает поступление воздуха в двигатель.",
+    "ecu": "Перепрошивка блока управления для оптимальной работы.",
+    "fuel": "Повышает эффективность подачи топлива.",
+    "cooling": "Снижает температуру двигателя под нагрузкой.",
+    "transmission": "Ускоряет переключение передач.",
+    "suspension": "Улучшает управляемость на трассе.",
+    "tires": "Повышает сцепление с дорогой.",
+    "aero": "Снижает аэродинамическое сопротивление.",
+    "weight": "Облегчает автомобиль для лучшей динамики.",
+}
 PARTS_PER_CLASS = 12
 assert len(UPGRADE_PARTS) == PARTS_PER_CLASS, "UPGRADE_PARTS must contain exactly 12 items"
 
@@ -57,11 +72,43 @@ class UpgradeProgress:
     """State of upgrades for a single car."""
     level: int = 0
     parts: List[str] = field(default_factory=list)
+    custom_done: bool = False
 
 
 def installed_parts(progress: UpgradeProgress) -> int:
     """Return total installed upgrade parts across all completed classes."""
     return progress.level * PARTS_PER_CLASS + len(progress.parts)
+
+
+def custom_upgrade_info(car: Dict, level: int) -> Dict[str, str]:
+    """Generate a custom upgrade name/description for a car and level."""
+    name = f"Спецтюнинг {car['name']}"
+    desc = f"Уникальный пакет для перехода на класс {level}"
+    return {"id": "custom", "name": name, "desc": desc}
+
+
+def available_parts(p: "Player", car_id: str) -> list:
+    """Return list of available upgrade parts for current car level.
+
+    Each item is a dict with keys: id, name, desc.
+    """
+    cat = list_catalog()
+    if car_id not in p.garage or car_id not in cat["cars"]:
+        return []
+    item = cat["cars"][car_id]
+    tier = item["tier"]
+    max_classes = UPGRADE_CLASSES.get(tier, 0)
+    progress = p.upgrades.get(car_id, UpgradeProgress())
+    if progress.level >= max_classes:
+        return []
+    if not progress.custom_done:
+        info = custom_upgrade_info(item, progress.level + 1)
+        return [info]
+    parts = []
+    for pid, name in UPGRADE_PARTS.items():
+        if pid not in progress.parts:
+            parts.append({"id": pid, "name": name, "desc": UPGRADE_DESCRIPTIONS[pid]})
+    return parts
 
 
 @dataclass
@@ -105,7 +152,8 @@ def load_player(uid: str, name: str) -> Player:
                 if isinstance(val, dict):
                     lvl = int(val.get("level", 0))
                     parts = list(val.get("parts", []))
-                    upg[cid] = UpgradeProgress(level=lvl, parts=parts)
+                    custom = bool(val.get("custom_done", False))
+                    upg[cid] = UpgradeProgress(level=lvl, parts=parts, custom_done=custom)
                 elif isinstance(val, list):
                     upg[cid] = UpgradeProgress(level=0, parts=list(val))
                 elif isinstance(val, int):
@@ -230,14 +278,27 @@ def buy_upgrade(p: Player, car_id: str, part_id: str) -> str:
         return "🚫 Сначала купи эту машину."
     if car_id not in cat["cars"]:
         return "🚫 Такой машины нет."
-    if part_id not in UPGRADE_PARTS:
-        return "🚫 Нет такой запчасти."
     item = cat["cars"][car_id]
     tier = item["tier"]
     max_classes = UPGRADE_CLASSES.get(tier, 0)
     progress = p.upgrades.get(car_id, UpgradeProgress())
     if progress.level >= max_classes:
         return "🚫 Достигнут максимум классов."
+    if not progress.custom_done:
+        if part_id != "custom":
+            return "🚫 Сначала установи специальный комплект."
+        total_installed = installed_parts(progress)
+        cost = int(item["price"] * UPGRADE_COST_MULT * (total_installed + 1))
+        if p.balance < cost:
+            return f"💸 Не хватает средств: нужно {cost}, на счету {p.balance}."
+        p.balance -= cost
+        progress.custom_done = True
+        p.upgrades[car_id] = progress
+        save_player(p)
+        info = custom_upgrade_info(item, progress.level + 1)
+        return f"✨ {info['name']} для {item['name']} за {cost}. Баланс: {p.balance}."
+    if part_id not in UPGRADE_PARTS:
+        return "🚫 Нет такой запчасти."
     if part_id in progress.parts:
         return "🚫 Эта запчасть уже установлена на текущем уровне."
     total_installed = installed_parts(progress)
@@ -250,14 +311,16 @@ def buy_upgrade(p: Player, car_id: str, part_id: str) -> str:
     if parts_count == PARTS_PER_CLASS:
         progress.level += 1
         progress.parts = []
+        progress.custom_done = False
         msg_end = " Заводская доработка завершена."
+        current_level = progress.level
     else:
         msg_end = ""
+        current_level = progress.level + 1
     p.upgrades[car_id] = progress
     save_player(p)
     name = UPGRADE_PARTS[part_id]
     display_count = parts_count if not msg_end else PARTS_PER_CLASS
-    current_level = progress.level if msg_end else progress.level + 1
     return (
         f"🔧 {name} {display_count}/{PARTS_PER_CLASS} уровня {current_level}/{max_classes} "
         f"для {item['name']} за {cost}. Баланс: {p.balance}." + msg_end
@@ -274,9 +337,15 @@ def upgrade_status(p: Player, car_id: str) -> str:
     item = cat["cars"][car_id]
     tier = item["tier"]
     progress = p.upgrades.get(car_id, UpgradeProgress())
+    max_classes = UPGRADE_CLASSES.get(tier, 0)
+    if not progress.custom_done and progress.level < max_classes:
+        info = custom_upgrade_info(item, progress.level + 1)
+        return (
+            f"🔩 {item['name']}: классы {progress.level}/{max_classes}. "
+            f"Требуется {info['name']}"
+        )
     parts_names = [UPGRADE_PARTS.get(pid, pid) for pid in progress.parts]
     installed = ", ".join(parts_names) if parts_names else "нет"
-    max_classes = UPGRADE_CLASSES.get(tier, 0)
     return (
         f"🔩 {item['name']}: классы {progress.level}/{max_classes}, "
         f"детали уровня: {installed}"

@@ -16,6 +16,7 @@ from economy_v1 import (
     buy_upgrade,
     upgrade_status,
     list_upgrade_parts,
+    available_parts,
 )
 from premium import is_premium
 
@@ -65,6 +66,12 @@ def _check_daily_limit(p):
 def get_upgrade_parts() -> Dict[str, str]:
     """Return available upgrade part identifiers and their names."""
     return list_upgrade_parts()
+
+
+def list_available_upgrades(user_id: str, name: str, car_id: str):
+    """Return available upgrade options for a player's car."""
+    p = load_player(user_id, name)
+    return available_parts(p, car_id)
 
 
 def buy_car_upgrade(user_id: str, name: str, car_id: str, part_id: str) -> str:
