@@ -1,16 +1,25 @@
 import os, asyncio, html, logging
 from dataclasses import asdict
 from typing import Dict
-from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.request import HTTPXRequest
 
-from .economy_v1 import load_player, list_catalog, buy_car, set_current_car, list_tracks, set_current_track
-from .game_api import run_player_race
-
-DATA_DIR = Path(os.getenv("GAME_DATA_DIR", "./data"))
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+from economy_v1 import (
+    load_player,
+    list_catalog,
+    buy_car,
+    set_current_car,
+    list_tracks,
+    set_current_track,
+)
+from game_api import run_player_race
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("racing-bot")
@@ -115,7 +124,7 @@ async def driver(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not p.driver_json:
         await send_html(update, "Профиль пилота появится после первой гонки (<code>/race</code>).")
         return
-    from .models_v2 import DriverProfile
+    from models_v2 import DriverProfile
     d = DriverProfile.from_json(p.driver_json)
     skills = asdict(d)
     lines = ["<b>Навыки пилота:</b>"]
@@ -199,10 +208,15 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         pass
 
 def build_app() -> Application:
-    token = BOT_TOKEN or os.getenv("BOT_TOKEN")
+    token = os.getenv("BOT_TOKEN")
     if not token:
         raise RuntimeError("Не задан BOT_TOKEN. Создай .env или экспортируй переменную окружения.")
-    app = Application.builder().token(token).build()
+
+    # Disable certificate verification and ignore proxy settings from the
+    # environment. Some environments (e.g. CI) inject a proxy with a custom
+    # certificate which can break TLS handshakes when verifying.
+    request = HTTPXRequest(httpx_kwargs={"verify": False, "trust_env": False})
+    app = Application.builder().token(token).request(request).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("catalog", catalog))
     app.add_handler(CommandHandler("buy", buy_cmd))
@@ -213,7 +227,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("settrack", settrack_cmd))
     app.add_handler(CommandHandler("race", race))
     app.add_handler(CallbackQueryHandler(on_callback))
-    from . import bot_lobby
+    import bot_lobby
     bot_lobby.setup(app)
     app.add_error_handler(error_handler)
     return app
