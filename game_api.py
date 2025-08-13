@@ -47,6 +47,7 @@ def save_driver(p, d: DriverProfile):
     p.driver_json = d.to_json()
     save_player(p)
 
+
 def _check_daily_limit(p):
     today = date.today().isoformat()
     if p.last_race_day != today:
@@ -56,6 +57,7 @@ def _check_daily_limit(p):
         raise RuntimeError(f"Лимит гонок на сегодня исчерпан ({MAX_RACES_PER_DAY}).")
     p.races_today += 1
     save_player(p)
+
 
 def get_upgrade_parts() -> Dict[str, str]:
     """Return available upgrade part identifiers and their names."""

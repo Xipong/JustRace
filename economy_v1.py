@@ -95,8 +95,10 @@ def load_player(uid: str, name: str) -> Player:
             data.setdefault("name", name)
             data.setdefault("balance", DEFAULT_START_BALANCE)
             data.setdefault("garage", [])
+
             data.setdefault("races_today", 0)
             data.setdefault("last_race_day", None)
+
             data.setdefault("upgrades", {})
             upg: Dict[str, UpgradeProgress] = {}
             for cid, val in data["upgrades"].items():
@@ -110,6 +112,7 @@ def load_player(uid: str, name: str) -> Player:
                     upg[cid] = UpgradeProgress(level=val, parts=[])
                 else:
                     upg[cid] = UpgradeProgress()
+
             data["upgrades"] = upg
             return Player(**data)
         except Exception:
