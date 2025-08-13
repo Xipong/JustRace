@@ -125,6 +125,9 @@ class RaceEngine:
         self.rho = 1.225
         self.random = random.Random(seed)
         self.on_event = on_event
+        # Время последнего события сегмента. Нужен для регулярных "тиков"
+        # чтобы не зависеть от длины сегмента и не спамить сообщениями.
+        self._last_seg_evt_time = 0.0
 
     @property
     def current_segment(self) -> TrackSegment:
@@ -146,7 +149,14 @@ class RaceEngine:
             self.state.total_time += dt
             self.state.penalties.append({"type": "minor", "delta_s": dt, "segment": seg_name, "load": lam})
             self.state.incidents += 1
-            self._notify({"type": "penalty", "severity": "minor", "delta_s": dt, "segment": seg_name, "load": lam})
+            self._notify({
+                "type": "penalty",
+                "severity": "minor",
+                "delta_s": dt,
+                "segment": seg_name,
+                "load": lam,
+                "time_s": self.state.total_time,
+            })
             return True
         if MAJOR_MISTAKES and (self.random.random() < MAJOR_MISTAKE_RATE):
             from random import uniform
@@ -154,7 +164,14 @@ class RaceEngine:
             self.state.total_time += dt
             self.state.penalties.append({"type": "major", "delta_s": dt, "segment": seg_name, "load": lam})
             self.state.incidents += 1
-            self._notify({"type": "penalty", "severity": "major", "delta_s": dt, "segment": seg_name, "load": lam})
+            self._notify({
+                "type": "penalty",
+                "severity": "major",
+                "delta_s": dt,
+                "segment": seg_name,
+                "load": lam,
+                "time_s": self.state.total_time,
+            })
             return True
         return False
 
@@ -192,6 +209,14 @@ class RaceEngine:
             self._step_straight(seg_before, dt)
         else:
             self._step_corner(seg_before, dt)
+        # Периодические события каждые 7.5с на одном участке
+        if (self.state.total_time - self._last_seg_evt_time) >= 7.5:
+            self._notify({
+                "type": "segment_tick",
+                "segment": seg_before.name,
+                "time_s": self.state.total_time,
+            })
+            self._last_seg_evt_time = self.state.total_time
         if self.state.segment_distance >= seg_before.length:
             excess = self.state.segment_distance - seg_before.length
             self.state.segment_distance = excess
@@ -199,12 +224,26 @@ class RaceEngine:
             if self.state.current_segment_idx >= len(self.track.segments):
                 self.state.current_segment_idx = 0
                 self.state.current_lap += 1
-                self._notify({"type": "lap_complete", "lap": self.state.current_lap - 1, "time_s": self.state.total_time})
+                self._notify({
+                    "type": "lap_complete",
+                    "lap": self.state.current_lap - 1,
+                    "time_s": self.state.total_time,
+                })
                 if self.state.current_lap > self.laps:
                     self.state.is_finished = True
-                    self._notify({"type": "race_complete", "time_s": self.state.total_time, "incidents": self.state.incidents})
+                    self._notify({
+                        "type": "race_complete",
+                        "time_s": self.state.total_time,
+                        "incidents": self.state.incidents,
+                    })
             else:
-                self._notify({"type": "segment_change", "segment": self.current_segment.name})
+                self._notify({
+                    "type": "segment_change",
+                    "segment": self.current_segment.name,
+                    "time_s": self.state.total_time,
+                })
+            # новая секция – сбрасываем таймер сегмента
+            self._last_seg_evt_time = self.state.total_time
 
     def run(self, dt: float = 0.1):
         while not self.state.is_finished:
