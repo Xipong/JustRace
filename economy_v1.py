@@ -30,6 +30,8 @@ UPGRADE_CLASSES = {
 }
 UPGRADE_COST_MULT = 0.1  # fraction of car price per part
 UPGRADE_POWER_BONUS = 0.05  # 5% power increase per part
+UPGRADE_WEIGHT_BONUS = 0.02  # 2% weight reduction per part
+UPGRADE_GRIP_BONUS = 0.01  # 1% grip increase per part
 # available upgrade parts
 UPGRADE_PARTS = {
     "engine": "Двигатель",
@@ -243,7 +245,13 @@ def buy_car(p: Player, car_id: str) -> str:
     if p.current_car is None:
         p.current_car = car_id
     save_player(p)
-    return f"✅ Покупка: {item['name']} за {price}. Баланс: {p.balance}."
+    stats = car_stats(p, car_id)
+    power = int(stats["base_power"])
+    mass = int(stats["base_mass"])
+    return (
+        f"✅ Покупка: {item['name']} за {price}. "
+        f"Мощность: {power} л.с., Вес: {mass} кг. Баланс: {p.balance}."
+    )
 
 def set_current_car(p: Player, car_id: str) -> str:
     if car_id not in p.garage:
@@ -269,6 +277,41 @@ def payout_for_race(car_tier: str, laps: int, incidents: int, clean: bool) -> in
 def reward_player(p: Player, amount: int) -> None:
     p.balance += int(amount)
     save_player(p)
+
+
+def redeem_bonus_code(p: Player, code: str) -> str:
+    """Apply a bonus code reward for the player."""
+    if code == "TestNewBounty":
+        reward_player(p, 100_000)
+        return f"🎁 Начислено 100000. Баланс: {p.balance}."
+    return "🚫 Неверный код."
+
+
+def car_stats(p: Player, car_id: str) -> Dict[str, float]:
+    """Return base and upgraded stats for a player's car."""
+    cat = list_catalog()
+    if car_id not in cat["cars"]:
+        return {"power": 0, "mass": 0, "tire_grip": 0, "base_power": 0, "base_mass": 0, "base_tire_grip": 0}
+    data = json.loads((DATA_DIR / "cars" / f"{car_id}.json").read_text(encoding="utf-8"))
+    base_power = data.get("power", 0)
+    base_mass = data.get("mass", 0)
+    base_grip = data.get("tire_grip", 0.0)
+    item = cat["cars"][car_id]
+    tier = item.get("tier", "starter")
+    progress = p.upgrades.get(car_id, UpgradeProgress())
+    max_parts = UPGRADE_CLASSES.get(tier, 0) * PARTS_PER_CLASS
+    total_parts = min(installed_parts(progress), max_parts)
+    power = base_power * (1 + UPGRADE_POWER_BONUS * total_parts)
+    mass = base_mass * max(0.0, 1 - UPGRADE_WEIGHT_BONUS * total_parts)
+    grip = base_grip * (1 + UPGRADE_GRIP_BONUS * total_parts)
+    return {
+        "power": power,
+        "mass": mass,
+        "tire_grip": grip,
+        "base_power": base_power,
+        "base_mass": base_mass,
+        "base_tire_grip": base_grip,
+    }
 
 
 def buy_upgrade(p: Player, car_id: str, part_id: str) -> str:

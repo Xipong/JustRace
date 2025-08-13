@@ -26,6 +26,8 @@ from economy_v1 import (
     set_current_car,
     list_tracks,
     set_current_track,
+    car_stats,
+    redeem_bonus_code,
 )
 from game_api import run_player_race, get_upgrade_status, list_available_upgrades, buy_car_upgrade
 from lobby import find_user_lobby
@@ -115,7 +117,20 @@ async def garage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lines = [f"<b>Баланс:</b> {fmt_money(p.balance)}", "<b>Гараж:</b>"]
     for cid in p.garage:
         name = cat["cars"].get(cid, {}).get("name", cid)
-        lines.append(f"- <code>{esc(cid)}</code> — {esc(name)}")
+        stats = car_stats(p, cid)
+        power = int(stats["power"])
+        mass = int(stats["mass"])
+        grip = stats["tire_grip"]
+        p_diff = power - int(stats["base_power"])
+        m_diff = mass - int(stats["base_mass"])
+        g_diff = grip - stats["base_tire_grip"]
+        p_txt = f"{power}" + (f" ({p_diff:+d})" if p_diff else "")
+        m_txt = f"{mass}" + (f" ({m_diff:+d})" if m_diff else "")
+        g_txt = f"{grip:.2f}" + (f" ({g_diff:+.2f})" if g_diff else "")
+        lines.append(
+            f"- <code>{esc(cid)}</code> — {esc(name)}: "
+            f"{p_txt} л.с., {m_txt} кг, сцепление {g_txt}"
+        )
     await update.effective_chat.send_message(
         "\n".join(lines), parse_mode=ParseMode.HTML, reply_markup=garage_kb(p)
     )
@@ -153,6 +168,15 @@ async def settrack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_html(update, "Использование: <code>/settrack &lt;track_id&gt;</code> (см. /track)")
         return
     await send_html(update, esc(set_current_track(p, context.args[0])))
+
+async def bonus_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = _uid(update); name = _uname(update)
+    if not context.args:
+        await send_html(update, "Использование: <code>/bonus &lt;код&gt;</code>")
+        return
+    p = load_player(uid, name)
+    msg = redeem_bonus_code(p, context.args[0])
+    await send_html(update, esc(msg))
 
 async def upgrades_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
@@ -293,6 +317,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("catalog", catalog))
     app.add_handler(CommandHandler("buy", buy_cmd))
+    app.add_handler(CommandHandler("bonus", bonus_cmd))
     app.add_handler(CommandHandler("garage", garage))
     app.add_handler(CommandHandler("setcar", setcar_cmd))
     app.add_handler(CommandHandler("driver", driver))
