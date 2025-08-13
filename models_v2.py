@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Tuple, Callable
 import random, json
 
-from .config_v2 import (
+from config_v2 import (
     USE_ROLLING_RESISTANCE, C_RR, K_LAT, ERROR_RATE_BASE, TIME_PENALTY_RANGE, DT_MAX,
     XP_PER_KM, PROGRESSION
 )

@@ -1,6 +1,7 @@
 import uuid
 from typing import Dict, List
-from .game_api import run_player_race
+
+from game_api import run_player_race
 
 # Простые лобби в памяти процесса
 LOBBIES: Dict[str, Dict] = {}
