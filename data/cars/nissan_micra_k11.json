@@ -6,5 +6,10 @@
   "cd": 0.35,
   "area": 2.0,
   "tire_grip": 0.91,
-  "price": 3200
+  "price": 3200,
+  "upgrade_multipliers": {
+    "ecu": 0.65,
+    "intake": 0.9,
+    "exhaust": 0.85
+  }
 }

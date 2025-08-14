@@ -5,5 +5,10 @@
     "mass": 1350,
     "cd": 0.3,
     "area": 2.2,
-    "tire_grip": 1.2
+    "tire_grip": 1.2,
+    "upgrade_multipliers": {
+        "ecu": 1.25,
+        "intake": 1.15,
+        "exhaust": 1.05
+    }
 }

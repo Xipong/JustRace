@@ -7,5 +7,10 @@
   "area": 1.9,
   "tire_grip": 0.9,
   "engine_volume": 0.8,
-  "price": 2500
+  "price": 2500,
+  "upgrade_multipliers": {
+    "ecu": 0.6,
+    "intake": 0.85,
+    "exhaust": 0.8
+  }
 }
