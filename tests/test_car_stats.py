@@ -30,7 +30,7 @@ def test_car_stats_upgrade_effect():
     economy_v1.buy_upgrade(p, cid, "engine")
     after = economy_v1.car_stats(p, cid)
     assert after["power"] > before["power"]
-    assert after["mass"] == pytest.approx(before["mass"])
+    assert after["mass"] > before["mass"]
     assert after["tire_grip"] == pytest.approx(before["tire_grip"])
     assert after["engine_volume"] > before["engine_volume"]
 
