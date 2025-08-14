@@ -48,3 +48,26 @@ def test_upgrade_individual_effects():
     economy_v1.buy_upgrade(p, cid, "tires")
     after_tires = economy_v1.car_stats(p, cid)
     assert after_tires["tire_grip"] > after_weight["tire_grip"]
+
+
+def test_high_level_parts_more_effective():
+    import economy_v1
+    cid = "daewoo_matiz_2005"
+    p = economy_v1.Player(user_id="4", name="T", garage=[cid], balance=1_000_000)
+
+    economy_v1.buy_upgrade(p, cid, "custom")
+    before_lvl0 = economy_v1.car_stats(p, cid)
+    economy_v1.buy_upgrade(p, cid, "engine")
+    after_lvl0 = economy_v1.car_stats(p, cid)
+    ratio_lvl0 = after_lvl0["power"] / before_lvl0["power"]
+
+    for part in economy_v1.UPGRADE_PARTS:
+        if part != "engine":
+            economy_v1.buy_upgrade(p, cid, part)
+    economy_v1.buy_upgrade(p, cid, "custom")
+    before_lvl1 = economy_v1.car_stats(p, cid)
+    economy_v1.buy_upgrade(p, cid, "engine")
+    after_lvl1 = economy_v1.car_stats(p, cid)
+    ratio_lvl1 = after_lvl1["power"] / before_lvl1["power"]
+
+    assert ratio_lvl1 > ratio_lvl0
