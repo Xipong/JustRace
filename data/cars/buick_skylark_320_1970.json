@@ -1,0 +1,9 @@
+{
+  "id": "buick_skylark_320_1970",
+  "name": "buick skylark 320 (1970)",
+  "power": 123,
+  "mass": 1675,
+  "cd": 0.45,
+  "area": 2.5,
+  "tire_grip": 0.97
+}

@@ -34,6 +34,8 @@ from economy_v1 import (
 from game_api import run_player_race, get_upgrade_status, list_available_upgrades, buy_car_upgrade, load_car_by_id
 from lobby import find_user_lobby, create_lobby, join_lobby, leave_lobby, LOBBIES
 
+TIERS = ["starter", "club", "sport", "gt", "hyper"]
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("racing-bot")
 
@@ -82,18 +84,34 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.effective_chat.send_message(
         help_text(), parse_mode=ParseMode.HTML, reply_markup=main_menu_kb()
     )
-async def catalog(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+async def catalog(update: Update, context: ContextTypes.DEFAULT_TYPE, tier: str | None = None, page: int = 1):
     cat = list_catalog()
     if not cat["cars"]:
         await send_html(update, "Каталог пуст. Залей JSON-файлы машин в <code>data/cars</code>.")
         return
-    lines = ["<b>Каталог:</b>"]
-    for cid, item in sorted(cat["cars"].items(), key=lambda kv: kv[1]['price']):
+
+    tiers = TIERS
+    tier = tier or tiers[0]
+    cars = [
+        (cid, item)
+        for cid, item in cat["cars"].items()
+        if item.get("tier") == tier
+    ]
+    cars.sort(key=lambda kv: kv[1]['price'])
+
+    per_page = 10
+    start = (page - 1) * per_page
+    page_cars = cars[start:start + per_page]
+
+    lines = [f"<b>Каталог ({tier.capitalize()}):</b>"]
+    for cid, item in page_cars:
         lines.append(f"<code>{esc(cid)}</code> — {esc(item['name'])}: {fmt_money(item['price'])}")
+
     await update.effective_chat.send_message(
         "\n".join(lines),
         parse_mode=ParseMode.HTML,
-        reply_markup=catalog_kb(cat)
+        reply_markup=catalog_kb(cat, tier=tier, page=page),
     )
 
 async def buy_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -106,7 +124,8 @@ async def buy_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = buy_car(p, car_id)
     await send_html(update, esc(msg))
 
-async def garage(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+async def garage(update: Update, context: ContextTypes.DEFAULT_TYPE, tier: str | None = None, page: int = 1):
     uid = _uid(update); name = _uname(update)
     p = load_player(uid, name)
     if not p.garage:
@@ -116,8 +135,18 @@ async def garage(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     cat = list_catalog()
-    lines = [f"<b>Баланс:</b> {fmt_money(p.balance)}", "<b>Гараж:</b>"]
-    for cid in p.garage:
+    tiers = TIERS
+    tier = tier or tiers[0]
+
+    cars = [cid for cid in p.garage if cat["cars"].get(cid, {}).get("tier") == tier]
+    per_page = 10
+    start = (page - 1) * per_page
+    page_cars = cars[start:start + per_page]
+
+    lines = [f"<b>Баланс:</b> {fmt_money(p.balance)}", f"<b>Гараж ({tier.capitalize()}):</b>"]
+    if not page_cars:
+        lines.append("В этом классе у тебя нет машин.")
+    for cid in page_cars:
         name = cat["cars"].get(cid, {}).get("name", cid)
         stats = car_stats(p, cid)
         power = int(stats["power"])
@@ -134,7 +163,7 @@ async def garage(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"{p_txt} л.с., {m_txt} кг, сцепление {g_txt}"
         )
     await update.effective_chat.send_message(
-        "\n".join(lines), parse_mode=ParseMode.HTML, reply_markup=garage_kb(p)
+        "\n".join(lines), parse_mode=ParseMode.HTML, reply_markup=garage_kb(p, tier=tier, page=page)
     )
 
 async def setcar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -299,6 +328,12 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = _uid(update); name = _uname(update)
     if data == "nav:catalog":
         await catalog(update, context)
+    elif data.startswith("cat_tier:"):
+        tier = data.split(":", 1)[1]
+        await catalog(update, context, tier=tier)
+    elif data.startswith("cat_page:"):
+        _, tier, page = data.split(":", 2)
+        await catalog(update, context, tier=tier, page=int(page))
     elif data.startswith("buy:"):
         p = load_player(uid, name)
         await send_html(update, esc(buy_car(p, data.split(":",1)[1])))
@@ -309,6 +344,12 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_html(update, esc(set_current_track(p, data.split(":",1)[1])))
     elif data == "nav:garage":
         await garage(update, context)
+    elif data.startswith("gar_tier:"):
+        tier = data.split(":", 1)[1]
+        await garage(update, context, tier=tier)
+    elif data.startswith("gar_page:"):
+        _, tier, page = data.split(":", 2)
+        await garage(update, context, tier=tier, page=int(page))
     elif data == "nav:help":
         await help_cmd(update, context)
     elif data == "nav:driver":

@@ -1,0 +1,9 @@
+{
+  "id": "volkswagen_type_3_1972",
+  "name": "volkswagen type 3 (1972)",
+  "power": 40,
+  "mass": 1022,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.94
+}

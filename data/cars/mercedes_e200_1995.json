@@ -1,0 +1,10 @@
+{
+  "id": "mercedes_e200_1995",
+  "name": "mercedes e200 (1995)",
+  "power": 100,
+  "mass": 1500,
+  "cd": 0.29,
+  "area": 2.4,
+  "tire_grip": 0.97,
+  "source": "https://en.wikipedia.org/wiki/Mercedes-Benz_W124"
+}

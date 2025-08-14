@@ -1,0 +1,9 @@
+{
+  "id": "dodge_colt_sw_1972",
+  "name": "dodge colt (sw) (1972)",
+  "power": 60,
+  "mass": 982,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.96
+}

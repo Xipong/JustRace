@@ -1,0 +1,9 @@
+{
+  "id": "ford_pinto_sw_1972",
+  "name": "ford pinto (sw) (1972)",
+  "power": 64,
+  "mass": 1086,
+  "cd": 0.45,
+  "area": 2.1,
+  "tire_grip": 0.96
+}

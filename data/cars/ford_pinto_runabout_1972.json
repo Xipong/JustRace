@@ -1,0 +1,9 @@
+{
+  "id": "ford_pinto_runabout_1972",
+  "name": "ford pinto runabout (1972)",
+  "power": 64,
+  "mass": 1010,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.96
+}

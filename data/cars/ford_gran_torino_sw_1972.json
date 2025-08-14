@@ -1,0 +1,9 @@
+{
+  "id": "ford_gran_torino_sw_1972",
+  "name": "ford gran torino (sw) (1972)",
+  "power": 104,
+  "mass": 1948,
+  "cd": 0.45,
+  "area": 2.6,
+  "tire_grip": 0.95
+}

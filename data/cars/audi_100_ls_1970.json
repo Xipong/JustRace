@@ -1,0 +1,9 @@
+{
+  "id": "audi_100_ls_1970",
+  "name": "audi 100 ls (1970)",
+  "power": 67,
+  "mass": 1102,
+  "cd": 0.45,
+  "area": 2.1,
+  "tire_grip": 0.96
+}

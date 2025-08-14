@@ -1,0 +1,9 @@
+{
+  "id": "chevrolet_impala_1970",
+  "name": "chevrolet impala (1970)",
+  "power": 164,
+  "mass": 1975,
+  "cd": 0.45,
+  "area": 2.6,
+  "tire_grip": 0.98
+}

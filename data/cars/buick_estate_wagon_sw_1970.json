@@ -1,0 +1,9 @@
+{
+  "id": "buick_estate_wagon_sw_1970",
+  "name": "buick estate wagon (sw) (1970)",
+  "power": 168,
+  "mass": 1400,
+  "cd": 0.45,
+  "area": 2.3,
+  "tire_grip": 1.02
+}

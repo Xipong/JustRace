@@ -1,0 +1,10 @@
+{
+  "id": "bmw_320i_1990",
+  "name": "bmw 320i (1990)",
+  "power": 96,
+  "mass": 1200,
+  "cd": 0.34,
+  "area": 2.2,
+  "tire_grip": 0.98,
+  "source": "https://en.wikipedia.org/wiki/BMW_3_Series_(E30)"
+}

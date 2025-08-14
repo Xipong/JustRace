@@ -1,9 +1,9 @@
 {
-    "id": "golf_gti_mk7",
-    "name": "Volkswagen Golf GTI (Mk7)",
-    "power": 169,
-    "mass": 1350,
-    "cd": 0.3,
-    "area": 2.2,
-    "tire_grip": 1.2
+  "id": "golf_gti_mk7",
+  "name": "Volkswagen Golf GTI (Mk7)",
+  "power": 169,
+  "mass": 1350,
+  "cd": 0.3,
+  "area": 2.2,
+  "tire_grip": 1.2
 }

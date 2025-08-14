@@ -1,0 +1,10 @@
+{
+  "id": "honda_civic_1995",
+  "name": "honda civic (1995)",
+  "power": 93,
+  "mass": 1075,
+  "cd": 0.33,
+  "area": 2.1,
+  "tire_grip": 0.99,
+  "source": "https://en.wikipedia.org/wiki/Honda_Civic_(fifth_generation)"
+}

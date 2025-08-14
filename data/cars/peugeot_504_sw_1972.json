@@ -1,0 +1,9 @@
+{
+  "id": "peugeot_504_sw_1972",
+  "name": "peugeot 504 (sw) (1972)",
+  "power": 65,
+  "mass": 1351,
+  "cd": 0.45,
+  "area": 2.3,
+  "tire_grip": 0.95
+}

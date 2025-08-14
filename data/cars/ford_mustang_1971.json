@@ -1,0 +1,9 @@
+{
+  "id": "ford_mustang_1971",
+  "name": "ford mustang (1971)",
+  "power": 66,
+  "mass": 1424,
+  "cd": 0.45,
+  "area": 2.4,
+  "tire_grip": 0.95
+}

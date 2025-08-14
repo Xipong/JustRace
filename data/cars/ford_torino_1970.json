@@ -1,0 +1,9 @@
+{
+  "id": "ford_torino_1970",
+  "name": "ford torino (1970)",
+  "power": 104,
+  "mass": 1564,
+  "cd": 0.45,
+  "area": 2.5,
+  "tire_grip": 0.97
+}

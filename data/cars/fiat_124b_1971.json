@@ -1,0 +1,9 @@
+{
+  "id": "fiat_124b_1971",
+  "name": "fiat 124b (1971)",
+  "power": 57,
+  "mass": 937,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.96
+}

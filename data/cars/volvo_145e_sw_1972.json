@@ -1,0 +1,9 @@
+{
+  "id": "volvo_145e_sw_1972",
+  "name": "volvo 145e (sw) (1972)",
+  "power": 84,
+  "mass": 1330,
+  "cd": 0.45,
+  "area": 2.3,
+  "tire_grip": 0.96
+}

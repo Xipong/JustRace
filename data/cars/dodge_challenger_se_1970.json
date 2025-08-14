@@ -1,0 +1,9 @@
+{
+  "id": "dodge_challenger_se_1970",
+  "name": "dodge challenger se (1970)",
+  "power": 127,
+  "mass": 1616,
+  "cd": 0.45,
+  "area": 2.5,
+  "tire_grip": 0.98
+}
