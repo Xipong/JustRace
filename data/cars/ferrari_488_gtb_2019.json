@@ -1,0 +1,26 @@
+{
+  "id": "ferrari_488_gtb_2019",
+  "name": "Ferrari 488 GTB (2019)",
+  "power": 492,
+  "mass": 1475,
+  "cd": 0.33,
+  "area": 2.0,
+  "tire_grip": 1.35,
+  "price": 262000,
+  "tier": "gt",
+  "upgrade_multipliers": {
+    "engine": 1.25,
+    "turbo": 1.35,
+    "exhaust": 0.85,
+    "intake": 0.9,
+    "ecu": 0.55,
+    "fuel": 0.7,
+    "cooling": 0.63,
+    "transmission": 1.1,
+    "suspension": 0.8,
+    "tires": 0.9,
+    "aero": 0.73,
+    "weight": 0.95,
+    "custom": 1.0
+  }
+}

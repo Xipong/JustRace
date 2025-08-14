@@ -1,0 +1,26 @@
+{
+  "id": "toyota_supra_mk4_1998",
+  "name": "Toyota Supra MK4 (1998)",
+  "power": 243,
+  "mass": 1500,
+  "cd": 0.31,
+  "area": 2.2,
+  "tire_grip": 1.28,
+  "price": 47750,
+  "tier": "sport",
+  "upgrade_multipliers": {
+    "engine": 1.11,
+    "turbo": 1.21,
+    "exhaust": 0.76,
+    "intake": 0.84,
+    "ecu": 0.46,
+    "fuel": 0.64,
+    "cooling": 0.55,
+    "transmission": 1.04,
+    "suspension": 0.74,
+    "tires": 0.84,
+    "aero": 0.65,
+    "weight": 0.95,
+    "custom": 1.0
+  }
+}

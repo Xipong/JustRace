@@ -1,0 +1,26 @@
+{
+  "id": "koenigsegg_agera_rs_2017",
+  "name": "Koenigsegg Agera RS (2017)",
+  "power": 865,
+  "mass": 1395,
+  "cd": 0.35,
+  "area": 2.0,
+  "tire_grip": 1.4,
+  "price": 2500000,
+  "tier": "hyper",
+  "upgrade_multipliers": {
+    "engine": 1.5,
+    "turbo": 1.6,
+    "exhaust": 1.0,
+    "intake": 1.0,
+    "ecu": 0.7,
+    "fuel": 0.8,
+    "cooling": 0.75,
+    "transmission": 1.2,
+    "suspension": 0.9,
+    "tires": 1.0,
+    "aero": 0.85,
+    "weight": 0.92,
+    "custom": 1.0
+  }
+}

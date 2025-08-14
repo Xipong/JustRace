@@ -5,5 +5,22 @@
   "mass": 1400,
   "cd": 0.45,
   "area": 2.3,
-  "tire_grip": 1.02
+  "tire_grip": 1.02,
+  "price": 21880,
+  "tier": "club",
+  "upgrade_multipliers": {
+    "engine": 1.07,
+    "turbo": 1.17,
+    "exhaust": 0.74,
+    "intake": 0.83,
+    "ecu": 0.44,
+    "fuel": 0.63,
+    "cooling": 0.53,
+    "transmission": 1.03,
+    "suspension": 0.73,
+    "tires": 0.83,
+    "aero": 0.63,
+    "weight": 0.92,
+    "custom": 1.0
+  }
 }

@@ -1,0 +1,26 @@
+{
+  "id": "nissan_gtr_r35_2020",
+  "name": "Nissan GT-R R35 (2020)",
+  "power": 419,
+  "mass": 1750,
+  "cd": 0.27,
+  "area": 2.2,
+  "tire_grip": 1.3,
+  "price": 106100,
+  "tier": "sport",
+  "upgrade_multipliers": {
+    "engine": 1.17,
+    "turbo": 1.27,
+    "exhaust": 0.8,
+    "intake": 0.87,
+    "ecu": 0.5,
+    "fuel": 0.67,
+    "cooling": 0.59,
+    "transmission": 1.07,
+    "suspension": 0.77,
+    "tires": 0.87,
+    "aero": 0.69,
+    "weight": 1.04,
+    "custom": 1.0
+  }
+}

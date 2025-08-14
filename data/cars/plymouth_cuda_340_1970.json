@@ -5,5 +5,22 @@
   "mass": 1637,
   "cd": 0.45,
   "area": 2.5,
-  "tire_grip": 0.97
+  "tire_grip": 0.97,
+  "price": 7890,
+  "tier": "starter",
+  "upgrade_multipliers": {
+    "engine": 1.03,
+    "turbo": 1.13,
+    "exhaust": 0.72,
+    "intake": 0.81,
+    "ecu": 0.42,
+    "fuel": 0.61,
+    "cooling": 0.51,
+    "transmission": 1.01,
+    "suspension": 0.71,
+    "tires": 0.81,
+    "aero": 0.61,
+    "weight": 1.0,
+    "custom": 1.0
+  }
 }

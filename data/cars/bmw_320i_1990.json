@@ -6,5 +6,22 @@
   "cd": 0.34,
   "area": 2.2,
   "tire_grip": 0.98,
-  "source": "https://en.wikipedia.org/wiki/BMW_3_Series_(E30)"
+  "source": "https://en.wikipedia.org/wiki/BMW_3_Series_(E30)",
+  "price": 8300,
+  "tier": "starter",
+  "upgrade_multipliers": {
+    "engine": 1.04,
+    "turbo": 1.14,
+    "exhaust": 0.72,
+    "intake": 0.81,
+    "ecu": 0.42,
+    "fuel": 0.61,
+    "cooling": 0.52,
+    "transmission": 1.01,
+    "suspension": 0.71,
+    "tires": 0.81,
+    "aero": 0.62,
+    "weight": 0.85,
+    "custom": 1.0
+  }
 }

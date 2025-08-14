@@ -1,0 +1,26 @@
+{
+  "id": "lamborghini_huracan_performante_2018",
+  "name": "Lamborghini Huracán Performante (2018)",
+  "power": 471,
+  "mass": 1382,
+  "cd": 0.31,
+  "area": 2.0,
+  "tire_grip": 1.36,
+  "price": 363410,
+  "tier": "gt",
+  "upgrade_multipliers": {
+    "engine": 1.26,
+    "turbo": 1.36,
+    "exhaust": 0.86,
+    "intake": 0.9,
+    "ecu": 0.56,
+    "fuel": 0.7,
+    "cooling": 0.63,
+    "transmission": 1.1,
+    "suspension": 0.8,
+    "tires": 0.9,
+    "aero": 0.73,
+    "weight": 0.91,
+    "custom": 1.0
+  }
+}
