@@ -1,0 +1,9 @@
+{
+  "id": "dodge_colt_hardtop_1972",
+  "name": "dodge colt hardtop (1972)",
+  "power": 60,
+  "mass": 964,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.96
+}

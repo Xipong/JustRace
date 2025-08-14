@@ -1,0 +1,10 @@
+{
+  "id": "toyota_corolla_1998",
+  "name": "toyota corolla (1998)",
+  "power": 82,
+  "mass": 1050,
+  "cd": 0.3,
+  "area": 2.1,
+  "tire_grip": 0.98,
+  "source": "https://en.wikipedia.org/wiki/Toyota_Corolla_(E110)"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "ford_maverick_1970",
+  "name": "ford maverick (1970)",
+  "power": 63,
+  "mass": 1173,
+  "cd": 0.45,
+  "area": 2.2,
+  "tire_grip": 0.95
+}

@@ -1,0 +1,9 @@
+{
+  "id": "buick_century_350_1973",
+  "name": "buick century 350 (1973)",
+  "power": 130,
+  "mass": 1860,
+  "cd": 0.45,
+  "area": 2.6,
+  "tire_grip": 0.97
+}

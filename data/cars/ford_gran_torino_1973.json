@@ -1,0 +1,9 @@
+{
+  "id": "ford_gran_torino_1973",
+  "name": "ford gran torino (1973)",
+  "power": 102,
+  "mass": 1833,
+  "cd": 0.45,
+  "area": 2.6,
+  "tire_grip": 0.96
+}

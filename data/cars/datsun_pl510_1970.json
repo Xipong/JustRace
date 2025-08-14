@@ -1,0 +1,9 @@
+{
+  "id": "datsun_pl510_1970",
+  "name": "datsun pl510 (1970)",
+  "power": 66,
+  "mass": 966,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.97
+}

@@ -1,0 +1,9 @@
+{
+  "id": "datsun_510_sw_1972",
+  "name": "datsun 510 (sw) (1972)",
+  "power": 69,
+  "mass": 1038,
+  "cd": 0.45,
+  "area": 2.1,
+  "tire_grip": 0.97
+}

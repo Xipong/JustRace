@@ -1,0 +1,9 @@
+{
+  "id": "chevrolet_vega_sw_1971",
+  "name": "chevrolet vega (sw) (1971)",
+  "power": 54,
+  "mass": 1092,
+  "cd": 0.45,
+  "area": 2.1,
+  "tire_grip": 0.95
+}

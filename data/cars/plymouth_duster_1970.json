@@ -1,0 +1,9 @@
+{
+  "id": "plymouth_duster_1970",
+  "name": "plymouth duster (1970)",
+  "power": 71,
+  "mass": 1285,
+  "cd": 0.45,
+  "area": 2.2,
+  "tire_grip": 0.96
+}

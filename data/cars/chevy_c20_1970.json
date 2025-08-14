@@ -1,0 +1,9 @@
+{
+  "id": "chevy_c20_1970",
+  "name": "chevy c20 (1970)",
+  "power": 149,
+  "mass": 1985,
+  "cd": 0.45,
+  "area": 2.6,
+  "tire_grip": 0.98
+}

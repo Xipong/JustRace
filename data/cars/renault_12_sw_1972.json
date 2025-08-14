@@ -1,0 +1,9 @@
+{
+  "id": "renault_12_sw_1972",
+  "name": "renault 12 (sw) (1972)",
+  "power": 51,
+  "mass": 993,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.95
+}

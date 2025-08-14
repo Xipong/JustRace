@@ -1,0 +1,9 @@
+{
+  "id": "mercury_capri_2000_1971",
+  "name": "mercury capri 2000 (1971)",
+  "power": 64,
+  "mass": 1007,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.96
+}

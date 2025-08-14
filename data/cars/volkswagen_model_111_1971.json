@@ -1,0 +1,9 @@
+{
+  "id": "volkswagen_model_111_1971",
+  "name": "volkswagen model 111 (1971)",
+  "power": 45,
+  "mass": 832,
+  "cd": 0.45,
+  "area": 1.9,
+  "tire_grip": 0.95
+}

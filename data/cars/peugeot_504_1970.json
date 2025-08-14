@@ -1,0 +1,9 @@
+{
+  "id": "peugeot_504_1970",
+  "name": "peugeot 504 (1970)",
+  "power": 65,
+  "mass": 1212,
+  "cd": 0.45,
+  "area": 2.2,
+  "tire_grip": 0.95
+}

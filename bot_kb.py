@@ -3,6 +3,8 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from economy_v1 import list_catalog, list_tracks
 
+TIERS = ["starter", "club", "sport", "gt", "hyper"]
+
 
 def fmt_money(v: int) -> str:
     """Format integer value with spaces for thousands."""
@@ -37,24 +39,69 @@ def main_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(_nav_menu_rows())
 
 
-def garage_kb(p) -> InlineKeyboardMarkup:
-    """Keyboard listing player's cars with upgrade buttons."""
+def garage_kb(p, tier: str | None = None, page: int = 1) -> InlineKeyboardMarkup:
+    """Keyboard listing player's cars with upgrade buttons, grouped by class."""
     cat = list_catalog()
-    rows = []
-    for cid in p.garage:
+    tiers = TIERS
+    tier = tier or tiers[0]
+
+    rows: List[List[InlineKeyboardButton]] = []
+    # class selection buttons
+    rows.append([
+        InlineKeyboardButton(t.capitalize(), callback_data=f"gar_tier:{t}")
+        for t in tiers
+    ])
+
+    cars = [cid for cid in p.garage if cat["cars"].get(cid, {}).get("tier") == tier]
+    per_page = 10
+    start = (page - 1) * per_page
+    for cid in cars[start:start + per_page]:
         name = cat["cars"].get(cid, {}).get("name", cid)
         rows.append([InlineKeyboardButton(name, callback_data=f"upgrades:{cid}")])
+
+    total_pages = max(1, (len(cars) + per_page - 1) // per_page)
+    if total_pages > 1:
+        rows.append([
+            InlineKeyboardButton(str(i + 1), callback_data=f"gar_page:{tier}:{i + 1}")
+            for i in range(total_pages)
+        ])
+
     rows.append([InlineKeyboardButton("Обновить", callback_data="nav:garage")])
     return _with_nav(rows)
 
 
-def catalog_kb(cat: Dict) -> InlineKeyboardMarkup:
-    """Keyboard with catalog cars and buy buttons."""
-    rows = []
-    cars = sorted(cat["cars"].items(), key=lambda kv: kv[1]["price"])[:12]
-    for cid, item in cars:
+def catalog_kb(cat: Dict, tier: str | None = None, page: int = 1) -> InlineKeyboardMarkup:
+    """Keyboard with catalog cars and buy buttons, grouped by class with pagination."""
+    tiers = TIERS
+    tier = tier or tiers[0]
+
+    rows: List[List[InlineKeyboardButton]] = []
+    # class selection buttons
+    rows.append([
+        InlineKeyboardButton(t.capitalize(), callback_data=f"cat_tier:{t}")
+        for t in tiers
+    ])
+
+    cars = [
+        (cid, item)
+        for cid, item in cat["cars"].items()
+        if item.get("tier") == tier
+    ]
+    cars.sort(key=lambda kv: kv[1]["price"])
+
+    per_page = 10
+    start = (page - 1) * per_page
+    for cid, item in cars[start:start + per_page]:
         label = f"{item['name']} — {fmt_money(item['price'])}"
         rows.append([InlineKeyboardButton(label, callback_data=f"buy:{cid}")])
+
+    total_pages = max(1, (len(cars) + per_page - 1) // per_page)
+    if total_pages > 1:
+        rows.append([
+            InlineKeyboardButton(str(i + 1), callback_data=f"cat_page:{tier}:{i + 1}")
+            for i in range(total_pages)
+        ])
+
     rows.append([InlineKeyboardButton("Обновить", callback_data="nav:catalog")])
     return _with_nav(rows)
 

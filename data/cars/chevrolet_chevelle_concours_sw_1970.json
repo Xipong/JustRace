@@ -1,0 +1,9 @@
+{
+  "id": "chevrolet_chevelle_concours_sw_1970",
+  "name": "chevrolet chevelle concours (sw) (1970)",
+  "power": 123,
+  "mass": 1879,
+  "cd": 0.45,
+  "area": 2.6,
+  "tire_grip": 0.97
+}

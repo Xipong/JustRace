@@ -1,0 +1,9 @@
+{
+  "id": "ford_mustang_boss_302_1970",
+  "name": "ford mustang boss 302 (1970)",
+  "power": 104,
+  "mass": 1521,
+  "cd": 0.45,
+  "area": 2.4,
+  "tire_grip": 0.97
+}

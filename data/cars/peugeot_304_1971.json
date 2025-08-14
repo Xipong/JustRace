@@ -1,0 +1,9 @@
+{
+  "id": "peugeot_304_1971",
+  "name": "peugeot 304 (1971)",
+  "power": 52,
+  "mass": 941,
+  "cd": 0.45,
+  "area": 2.0,
+  "tire_grip": 0.96
+}

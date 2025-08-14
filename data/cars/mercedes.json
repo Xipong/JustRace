@@ -1,9 +1,9 @@
 {
-    "id": "mercedes",
-    "name": "Mercedes-AMG GT3",
-    "power": 410,
-    "mass": 1300,
-    "cd": 0.35,
-    "area": 1.9,
-    "tire_grip": 1.3
+  "id": "mercedes",
+  "name": "Mercedes-AMG GT3",
+  "power": 410,
+  "mass": 1300,
+  "cd": 0.35,
+  "area": 1.9,
+  "tire_grip": 1.3
 }

@@ -1,0 +1,9 @@
+{
+  "id": "datsun_1200_1971",
+  "name": "datsun 1200 (1971)",
+  "power": 51,
+  "mass": 732,
+  "cd": 0.45,
+  "area": 1.8,
+  "tire_grip": 0.97
+}
