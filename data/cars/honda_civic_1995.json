@@ -6,5 +6,22 @@
   "cd": 0.33,
   "area": 2.1,
   "tire_grip": 0.99,
-  "source": "https://en.wikipedia.org/wiki/Honda_Civic_(fifth_generation)"
+  "source": "https://en.wikipedia.org/wiki/Honda_Civic_(fifth_generation)",
+  "price": 8740,
+  "tier": "starter",
+  "upgrade_multipliers": {
+    "engine": 1.04,
+    "turbo": 1.14,
+    "exhaust": 0.72,
+    "intake": 0.82,
+    "ecu": 0.42,
+    "fuel": 0.62,
+    "cooling": 0.52,
+    "transmission": 1.02,
+    "suspension": 0.72,
+    "tires": 0.82,
+    "aero": 0.62,
+    "weight": 0.81,
+    "custom": 1.0
+  }
 }

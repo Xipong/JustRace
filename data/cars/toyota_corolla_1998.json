@@ -6,5 +6,22 @@
   "cd": 0.3,
   "area": 2.1,
   "tire_grip": 0.98,
-  "source": "https://en.wikipedia.org/wiki/Toyota_Corolla_(E110)"
+  "source": "https://en.wikipedia.org/wiki/Toyota_Corolla_(E110)",
+  "price": 8140,
+  "tier": "starter",
+  "upgrade_multipliers": {
+    "engine": 1.03,
+    "turbo": 1.13,
+    "exhaust": 0.72,
+    "intake": 0.81,
+    "ecu": 0.42,
+    "fuel": 0.61,
+    "cooling": 0.52,
+    "transmission": 1.01,
+    "suspension": 0.71,
+    "tires": 0.81,
+    "aero": 0.62,
+    "weight": 0.8,
+    "custom": 1.0
+  }
 }

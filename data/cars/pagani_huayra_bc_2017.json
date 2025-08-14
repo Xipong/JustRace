@@ -1,0 +1,26 @@
+{
+  "id": "pagani_huayra_bc_2017",
+  "name": "Pagani Huayra BC (2017)",
+  "power": 588,
+  "mass": 1218,
+  "cd": 0.37,
+  "area": 2.0,
+  "tire_grip": 1.4,
+  "price": 1058340,
+  "tier": "hyper",
+  "upgrade_multipliers": {
+    "engine": 1.38,
+    "turbo": 1.48,
+    "exhaust": 0.93,
+    "intake": 0.95,
+    "ecu": 0.63,
+    "fuel": 0.75,
+    "cooling": 0.69,
+    "transmission": 1.15,
+    "suspension": 0.85,
+    "tires": 0.95,
+    "aero": 0.79,
+    "weight": 0.86,
+    "custom": 1.0
+  }
+}

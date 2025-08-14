@@ -1,0 +1,26 @@
+{
+  "id": "porsche_911_carrera_2020",
+  "name": "Porsche 911 Carrera (2020)",
+  "power": 283,
+  "mass": 1500,
+  "cd": 0.29,
+  "area": 2.0,
+  "tire_grip": 1.3,
+  "price": 97000,
+  "tier": "sport",
+  "upgrade_multipliers": {
+    "engine": 1.13,
+    "turbo": 1.23,
+    "exhaust": 0.78,
+    "intake": 0.85,
+    "ecu": 0.48,
+    "fuel": 0.65,
+    "cooling": 0.56,
+    "transmission": 1.05,
+    "suspension": 0.75,
+    "tires": 0.85,
+    "aero": 0.66,
+    "weight": 0.95,
+    "custom": 1.0
+  }
+}

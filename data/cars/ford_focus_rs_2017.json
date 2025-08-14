@@ -1,0 +1,26 @@
+{
+  "id": "ford_focus_rs_2017",
+  "name": "Ford Focus RS (2017)",
+  "power": 257,
+  "mass": 1500,
+  "cd": 0.35,
+  "area": 2.2,
+  "tire_grip": 1.25,
+  "price": 31130,
+  "tier": "club",
+  "upgrade_multipliers": {
+    "engine": 1.11,
+    "turbo": 1.21,
+    "exhaust": 0.77,
+    "intake": 0.85,
+    "ecu": 0.47,
+    "fuel": 0.65,
+    "cooling": 0.56,
+    "transmission": 1.05,
+    "suspension": 0.75,
+    "tires": 0.85,
+    "aero": 0.66,
+    "weight": 0.95,
+    "custom": 1.0
+  }
+}

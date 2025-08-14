@@ -1,6 +1,6 @@
 import os, json, tempfile
 from dataclasses import dataclass, asdict, field
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 from pathlib import Path
 
 DATA_DIR = Path(os.getenv("GAME_DATA_DIR", "./data"))
@@ -58,21 +58,8 @@ def round_price(value: float) -> int:
     return int((value + 5) // 10 * 10)
 
 
-UPGRADE_PART_MULT: Dict[str, float] = {
-    "engine": 1.2,
-    "turbo": 1.3,
-    "exhaust": 0.8,
-    "intake": 0.9,
-    "ecu": 0.5,
-    "fuel": 0.7,
-    "cooling": 0.6,
-    "transmission": 1.1,
-    "suspension": 0.8,
-    "tires": 0.9,
-    "aero": 0.7,
-    "weight": 0.9,
-    "custom": 1.0,
-}
+# default upgrade cost multipliers now live in each car definition
+UPGRADE_PART_MULT: Dict[str, float] = {}
 
 
 _CAR_UPGRADE_MULT_CACHE: Dict[str, Dict[str, float]] = {}
@@ -91,11 +78,11 @@ def _car_upgrade_mults(car_id: str) -> Dict[str, float]:
 
 def part_cost_multiplier(part_id: str, car_id: Optional[str]) -> float:
     """Get cost multiplier for a part, considering car-specific overrides."""
-    base = UPGRADE_PART_MULT.get(part_id, 1.0)
     if car_id:
         mults = _car_upgrade_mults(car_id)
-        return mults.get(part_id, base)
-    return base
+        if part_id in mults:
+            return mults[part_id]
+    return UPGRADE_PART_MULT.get(part_id, 1.0)
 
 
 def upgrade_cost(
@@ -269,31 +256,13 @@ def _atomic_write(path: Path, text: str):
 def save_player(p: Player) -> None:
     _atomic_write(_user_path(p.user_id), p.to_json())
 
-def _price_tier(car: Dict) -> Tuple[int, str]:
-    mass = max(car.get("mass", 1), 1)
-    power = max(car.get("power", 0), 0)
-    pw = power / mass  # kW/kg
-    tiers = {
-        "starter": (0.00, 0.09, 8000),
-        "club":    (0.09, 0.14, 18000),
-        "sport":   (0.14, 0.25, 60000),
-        "gt":      (0.25, 0.40, 180000),
-        "hyper":   (0.40, 2.00, 900000),
-    }
-    for name, (lo, hi, base) in tiers.items():
-        if lo <= pw < hi:
-            grip = float(car.get("tire_grip", 1.0))
-            cd = float(car.get("cd", 0.35))
-            adj = 1.0 + 0.15 * (grip - 1.0) + 0.10 * (max(0.25, min(0.6, cd)) - 0.35)
-            return round_price(base * adj), name
-    return round_price(5000), "starter"
-
 def list_catalog() -> Dict:
     out = {"cars": {}}
     for p in CARS_DIR.glob("*.json"):
         try:
             j = json.loads(p.read_text(encoding="utf-8"))
-            price, tier = _price_tier(j)
+            price = j["price"]
+            tier = j["tier"]
             cid = j.get("id") or p.stem
             name = j.get("name") or p.stem
             out["cars"][cid] = {
