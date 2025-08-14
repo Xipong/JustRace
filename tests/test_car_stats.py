@@ -30,8 +30,8 @@ def test_car_stats_upgrade_effect():
     economy_v1.buy_upgrade(p, cid, "engine")
     after = economy_v1.car_stats(p, cid)
     assert after["power"] > before["power"]
-    assert after["mass"] == pytest.approx(before["mass"])
-    assert after["tire_grip"] == pytest.approx(before["tire_grip"])
+    assert after["mass"] < before["mass"]
+    assert after["tire_grip"] > before["tire_grip"]
     assert after["engine_volume"] > before["engine_volume"]
 
 
@@ -48,3 +48,15 @@ def test_upgrade_individual_effects():
     economy_v1.buy_upgrade(p, cid, "tires")
     after_tires = economy_v1.car_stats(p, cid)
     assert after_tires["tire_grip"] > after_weight["tire_grip"]
+
+
+def test_custom_upgrade_changes_stats():
+    import economy_v1
+    cid = "daewoo_matiz_2005"
+    p = economy_v1.Player(user_id="4", name="T", garage=[cid], balance=1_000_000)
+    before = economy_v1.car_stats(p, cid)
+    economy_v1.buy_upgrade(p, cid, "custom")
+    after = economy_v1.car_stats(p, cid)
+    assert after["power"] > before["power"]
+    assert after["mass"] < before["mass"]
+    assert after["tire_grip"] > before["tire_grip"]
